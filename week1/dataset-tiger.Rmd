@@ -144,6 +144,15 @@ place. About 24 percent of land area of Massachusetts belongs to
 incorporated or unincorporated places. In California, less than ten 
 percent of all land is part of an incorporated or unincorporated place.
 
+The places TIGER file inclused a variable `LSAD` that differentiates 
+among types of places, including the following categories:
+
+* City (LSAD = 25)
+* Township (LSAD = 35)
+* Town (LSAD = 43)
+* Village (LSAD = 47)
+* Census-designated place (unincorporated) (LSAD = 57)
+
 An **Urban area** is group of contiguous census blocks that 
 have a population density above an established threshold, irrespective
 of municipal or county boundaries.^[See https://www.federalregister.gov/documents/2022/03/24/2022-06180/urban-area-criteria-for-the-2020-census-final-criteria for details.] 
@@ -283,7 +292,8 @@ lead to a screen with more options; a "download" button will download the data.
 An application programming interface (API) allows software developers 
 to access data programmatically (i.e. through code). The R package
 `tigris` offers a convenient way for R users to access the Census 
-Bureau's TIGER API directly from their code.
+Bureau's TIGER API directly from their code. The Python package
+`pygris` (from the same developer) is similar.
 
 You can find full set of `tigris` functions to download data 
 here: https://walker-data.com/census-r/census-geographic-data-and-applications-in-r.html#data-availability-in-tigris

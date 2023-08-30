@@ -1,0 +1,359 @@
+---
+title: "U.S. Census TIGER files"
+subtitle: "Dataset of the Week (Week 1)"
+output: 
+  rmdformats::readthedown:
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+
+library(here)
+library(tidyverse)
+
+```
+
+
+# Background
+
+The United States Census Bureau maintains and publishes geographic 
+data on the United States and its territories. These data are published
+as TIGER files. TIGER stands for **T**opologically **I**ntegrated 
+**G**eographic **E**ncoding and **R**eferencing.
+
+You can read the Census Bureau's description of its mission, authority,
+and activities here:
+[https://www.census.gov/about/what.html]{target="_blank"}.
+
+They describe their mission as "to serve as the nation's leading
+provider of quality data about its people and economy."
+
+The Census Bureau uses
+TIGER files to create maps and to collect and summarize data about the 
+people and economy of the United States.
+
+# Available data
+
+Three types of TIGER files are available: _geographic areas_
+and _features_. 
+
+Geographic areas will be polygons. Features may be points, 
+lines, or polygons. Two useful variables that will be 
+included with any TIGER polygon layer are `ALAND` and
+`WATER`, which represent the land and water areas of the 
+polygon respectively, in square meters (this can be useful
+when you want to calculate a population density based on the
+land area rather than on the total area of a region). 
+
+## Geographic areas
+
+Geographic areas are areas for which the Census Bureau
+publishes demographic data. They may be nested or non-nested.
+
+### Nested geographies
+
+Many national statistical agencies, including the United States
+Census Bureau, use nested geographies for tabulating population
+and demographic data. The nested geographies the United States
+Census Bureau uses include:
+
+* States (and state equivalents)
+* Counties (and county equivalents)
+* Census tracts
+* Census block groups
+* Census blocks
+
+We describe these as nested because the smaller geographies
+nest within larger geographies. Census block groups comprise
+a set of census blocks; census tracts comprise a set of census
+block groups; counties comprise a set of census tracts; and
+so on.
+
+Census geographic areas can be identified by a numeric identifier
+called a GEOID (geographic identifier) or FIPS (Federal Information
+Processing System) code. These codes are nested as well. The FIPS code
+for a *census block* is a 15 digit-code. The first 12 digits of the
+code are FIPS the FIPS code for the *block group* the block is in. 
+The first 11 digits of the block group FIPS code are the FIPS code
+for the *tract*. Figure 1 illustrates the structure of 
+FIPS code for nested census geographies.
+
+```{r, echo=FALSE, fig.cap="Figure 1: FIPS code for nested census geographies", out.width = '50%'}
+
+here("images",
+     "FIPS.png") |>
+  knitr::include_graphics()
+```
+
+**States (and state equivalents)** include 50 states, five territories, 
+and the District of Columbia. State boundaries are political 
+boundaries and they were drawn for political and historical reasons.
+State boundaries are quite stable over time. 
+
+Each state is divided into one or more **counties (or county equivalents)**.
+The District of Columbia and Guam each have one county equivalent. Texas
+has 254 counties. Like state boundaries, county boundaries were 
+generally drawn
+for political and historical reasons. They may change occasionally, and 
+these changes are more common than changes to state boundaries.^[In 
+June 2022, the boundaries for county equivalents in Connecticut changed
+substantially. See https://portal.ct.gov/Office-of-the-Governor/News/Press-Releases/2022/06-2022/Governor-Lamont-Announces-Census-Bureau-Approves-Proposal-for-Planning-Regions]
+
+Counties are divided into **census tracts**. Census tracts are not 
+political boundaries. The Census Bureau established census tract
+boundaries based on established 
+criteria, including (among other considerations) a goal of 
+maintaining a similar population size in each tract.^[For detailed criteria 
+used to determine tract boundaries for the 2020 census, see 
+https://www.federalregister.gov/documents/2018/11/13/2018-24567/census-tracts-for-the-2020-census-final-criteria] Tract boundaries can change as often
+as every ten years.
+
+Census tracts are divided into **census block groups**. Block group
+boundaries are likewise drawn by the Census Bureau based on 
+established criteria^[See https://www.federalregister.gov/documents/2018/11/13/2018-24570/block-groups-for-the-2020-census-final-criteria] and may change as often as 
+every ten years.
+
+Census block groups are sets of adjacent **census blocks**. Census
+blocks are bounded by physical features such as roads (most commonly), 
+rivers, or coastlines. 
+
+### Non-nested geographies
+
+Other census geographies are not nested, including:
+
+* Places (including cities)
+* Urbanized areas
+* Core-based statistical areas
+* Public-use microdata areas
+
+FIPS codes for non-nested census geographies are assigned 
+alphabetically.
+
+Most cities and towns in the United states are classified
+as **places**. This a category that includes both 
+legally-incorporated places (e.g. cities and towns) and unincorporated 
+places that are equivalent to incorporated places and have a locally-used
+name, but do not have an functioning government.^[See https://www.census.gov/programs-surveys/bas/information/cdp.html] Many 
+locations in the United States
+are not classified as being part of any incorporated or unincorporated 
+place. About 24 percent of land area of Massachusetts belongs to
+incorporated or unincorporated places. In California, less than ten 
+percent of all land is part of an incorporated or unincorporated place.
+
+An **Urban area** is group of contiguous census blocks that 
+have a population density above an established threshold, irrespective
+of municipal or county boundaries.^[See https://www.federalregister.gov/documents/2022/03/24/2022-06180/urban-area-criteria-for-the-2020-census-final-criteria for details.] 
+
+**Core-based statistical areas (CBSAs)** are groups of *counties* that share
+economic ties, which are primarily determined based on identified 
+commuting patterns.^[Given recent changes in the prevalence of 
+commuting, this may change. See https://www.federalregister.gov/documents/2021/07/16/2021-15159/2020-standards-for-delineating-core-based-statistical-areas for a description of
+current criteria, including a discussion of comments on them.] Many counties 
+in the United States are not part of any core-based statistical area.
+
+A core-based statistical area may be either a 
+**metropolitan statistical area (MSA)** or a 
+**micropolitan statistical area ($\mu$SA)**. An MSA is a group
+of connected counties containing at least one urban area with a 
+population of at least 50,000 people. A $\mu$SA us a group
+of connected counties that are not in an MSA but contain
+at least one urban area with a population of at least 10,000 
+people. The CBSA TIGER file differentiates between MSAs and 
+$\mu$SA with a variable called `LSAD`, which takes a value of `M1`
+for MSAs and `M2` for $\mu$SAs. There are 392 MSAs in the United
+States and 547 $\mu$SAs.
+
+A **public-use microdata area (PUMA)** is a set of contiguous census
+tracts within a single state that have a combined population of
+at least 100,000 people. Each census tract in the United States
+is classified into one (and only one) PUMA. To protect privacy, 
+individual- and household-level data from the United States census 
+are not available with any geographic identifiers for areas smaller 
+than a PUMA.
+
+## Features
+
+Features may be represented on a census map for context, and may
+define the boundaries of geographic areas. They include:
+
+* Roads
+* Rails
+* Water
+* Coastline
+* Landmarks
+
+Features will have an MTFCC (MAP/TIGER Feature Class Code) to 
+classify each feature in the layer as one of several types. This
+document includes definitions of all current MTFCCs: https://www2.census.gov/geo/pdfs/reference/mtfccs2022.pdf
+    
+### Roads 
+
+Roads represent the roadway centerline with MTFCC codes to 
+differentiate among categories including:
+
+* Primary Road (S1100)
+* Secondary Road (S1200)
+* Local neighborhood Road, Rural Road, City Street (S1400)
+* Walkway/Pedestrian Trail (S1710)
+
+A file with only primary roads is available as a single 
+national file. Files with only primary and secondary 
+roads are available at the state level. Files including
+all road features are available for individual counties.
+
+### Rails
+
+All rail features have the same MTFCC. Rail data is available as a line
+layer in a single national file. 
+
+### Water
+
+Water features are available as linear features or as
+polygon features. 
+
+**Linear water features** have MTFCCs to classify them into categories including:
+
+* Stream/river (H3010)
+* Canal, Ditch, or Aqueduct (H3020)
+* Connector (H1100)
+
+**Polygon water features** have MTFCCs to classify them into categories including:
+
+* Lake/pond (H2030)
+* Stream/river (H3010)
+* Bay/Estuary/Gulf/Sound (H2051)
+
+Water feature layers are available for each county.
+
+### Coastline
+
+The coastline is available as a line layer in a single national
+file with only one MTFCC value.
+
+### Landmarks
+
+Landmarks are available as point data or as polygon data for each state. 
+
+For point landmarks, MTFCCs differentiate among categories including:
+
+* Mountain peak or summit (C3022)
+* Cemetery (K2582)
+* School or academy (K2543)
+* Government center (K2165)
+* Library (K2195)
+* Golf course (K2561)
+* Fire department (K2193)
+* Place of worship (K3544)
+
+For polygon landmarks, MTFCCs differentiate among categories including:
+
+* Island (C3023)
+* Hospital/Hospice/Urgent Care Facility (K1231)
+* Park (K2180)
+* Cemetery (K2582)
+* University or College (K2540)
+* Local Jail or Detention Center (K1236)
+
+# Data access
+
+Two ways to access TIGER files are through an interactive, web-based 
+interface and through an the census bureau's API.
+
+## Web interface
+
+The easiest way to find TIGER files in a web browser is to enter
+"United States Census TIGER files" into a search engine. The top result
+is likely to be https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html
+
+Scroll down to see a set of tabs indicating different years. You may
+find a note that "The 2023 TIGER/Line Shapefiles will be available in September 2023."
+Select the tab for 2022 (or any earlier year) and click on the "Web Interface" link.
+
+This will take you to https://www.census.gov/cgi-bin/geo/shapefiles/index.php (or you could
+just navigate directly to that site). From there, instructions to find and download
+the shapefile you want are fairly self-explanatory. A "submit" button will always
+lead to a screen with more options; a "download" button will download the data.
+
+## API access
+
+An application programming interface (API) allows software developers 
+to access data programmatically (i.e. through code). The R package
+`tigris` offers a convenient way for R users to access the Census 
+Bureau's TIGER API directly from their code.
+
+You can find full set of `tigris` functions to download data 
+here: https://walker-data.com/census-r/census-geographic-data-and-applications-in-r.html#data-availability-in-tigris
+
+Here are some examples of how to use the `tigris` package to
+load the datasets described above into R.
+
+```{r, message=FALSE, results='hide', warning=FALSE, eval=FALSE}
+library(tigris)
+
+# load all state boundaries in the United States
+states <- states()
+
+# Load all county boundaries in the United States
+counties <- counties()
+
+# Load all county boundaries in Massachusetts
+TX_counties <- counties(state = "Massachusetts")
+
+# Load all census tract boundaries in Rhode Island
+RI_tracts <- tracts(state = "Rhode Island")
+
+# Load all census tract boundaries in Los Angeles County
+LA_tracts <- tracts(state = "California", county = "Los Angeles")
+
+# Load all census block groups in Rhode Island
+Suffolk_BGs <- block_groups(state = "RI")
+
+# Load all census block groups in Cook County, Illinois
+Cook_Co_BGs <- block_groups(state = "IL", county = "Cook")
+
+# Load all census blocks in Rhode Island and Connecticut
+RI_blocks <- blocks(state = "RI")
+
+# Load all places in Montana
+places <- places(state = "Montana")
+
+# Load all urban areas in the United States
+UAs <- urban_areas()
+
+# Load all CBSAs in the United States
+CBSAs <- core_based_statistical_areas()
+
+# Load all PUMAs in New York state
+PUMAs <- pumas(state = "New York")
+
+# Load all primary roads in the United States
+US_roads <- primary_roads()
+
+# Load all primary and secondary roads in New Hampshire
+NH_pri_sec_roads <- primary_secondary_roads(state = "NH")
+
+# Load all roads in Fulton County, Georgia
+fulton_roads <- roads(state = "Georgia", county = "Fulton")
+
+# Load all rail lines in the United States
+rails <- rails()
+
+# Load all linear water features in Salt Lake County, Utah
+slc_water_line <- linear_water(state = "UT", county = "Salt Lake")
+
+# Load all polygon water features in King County, Washington
+king_co_water_poly <- area_water(state = "WA", county = "King")
+
+# Load the coastlines for the United States
+coast <- coastline()
+
+# Load the point landmarks for Massachusetts
+MA_landmarks_pt <- landmarks(state = "MA")
+
+# Load the polygon landmarks for Guam
+guam_landmarks_poly <- landmarks(state = "Guam", type = "area")
+```

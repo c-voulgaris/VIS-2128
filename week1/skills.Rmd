@@ -1,0 +1,654 @@
+---
+title: "Skills: Displaying map data"
+subtitle: "Week 1"
+output: 
+  rmdformats::readthedown:
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+#knitr::knit_engines$set(python = reticulate::eng_python) 
+```
+
+This page introduces some of the skill that are useful for displaying
+geospatial data on a map using R, Python, QGIS, or ARcGIS.
+
+The R skills on this page use the following R packages:
+
+```{r, message=FALSE}
+library(tigris)
+library(rnaturalearth)
+library(sf)
+library(here)
+library(tidyverse)
+library(leaflet)
+library(ggspatial)
+library(ggthemes)
+```
+
+In order to run Python code from RStudio, I'm using the `reticulate`
+package and setting up my RStudio environment so it knows where I 
+have Python installed. Just because you _can_ run Python in RStudio, doesn't 
+mean you should. You might be better served by PyCharm or Jupyter notebooks.
+
+```{r}
+library(reticulate)
+Sys.setenv(RETICULATE_PYTHON = here("env_2128/Scripts/python.exe"))
+use_virtualenv(here("env_2128"))
+```
+
+The Python skills on this page use the following Python packages.
+
+```{python}
+import geopandas
+import pygris
+import pandas
+
+import matplotlib.pyplot as plt
+
+from pyprojroot.here import here
+from geopandas.tools import sjoin
+```
+
+# Loading data
+
+A first step in working with geospatial data is loading it into 
+the software you are working with.
+
+## R
+
+Some packages (such as the `tigris` package) will load data
+directly from an online source (so you need to be connected to the 
+internet for these functions to work). 
+
+```{r, results='hide', message=FALSE}
+states <- states()
+rails <- rails()
+TX_landmarks <- landmarks(state = "TX")
+```
+
+Other packages (such as `rnaturalearth`) include geospatial datasets (the
+data was installed on your computer along with the package, so they will
+work regardless of whether you are connected to the internet).
+
+```{r, message=FALSE, results='hide'}
+library(rnaturalearth)
+
+africa <- ne_countries(continent = "Africa", returnclass = "sf")
+```
+
+
+The `st_read` funtion (from the `sf` package) will read
+data from a file in any common data format. 
+
+```{r, results='hide', message=FALSE}
+library(sf)
+library(here)
+
+open_space <- here("week1",
+                   "data",
+                   "Open_Space.geojson") |>
+  st_read()
+```
+
+For shapefiles, use the name of the directory containing the set of 
+files.
+
+```{r, results='hide'}
+community_c <- here("week1",
+                    "data",
+                    "Community_Centers") |>
+  st_read()
+```
+
+## Python
+
+`pygris` is the Python version of `tigris` and can download TIGER
+files via the census API. It is not as complete as `tigris`.
+
+```{python, message=FALSE, results = 'hide'}
+states = pygris.states()
+
+rails = pygris.rails()
+```
+
+You can load spatial data from a file using the `read_file` function
+in the `geopandas` package. To read shapefiles, reference the directory
+containing the set of files.
+
+```{python}
+open_space = geopandas.read_file(here("week1/data/Open_Space.geojson"))
+
+guam_places = geopandas.read_file(here("week1/data/tl_2022_66_place"))
+```
+
+## QGIS
+
+In QGIS, you can load a layer by dragging and dropping it into 
+the main window. This can be either a single geospatial file (like
+a geojson file or a kml file) or a directory containing a shapefile (along
+with its associated files).
+
+Once the dataset is loaded in QGIS, you'll see it listed in your
+layers panel and displayed in the map panel.
+
+```{r, echo=FALSE, fig.cap="Gif 1: Loading datasets in QGIS", out.width = '100%'}
+here("week1",
+     "examples",
+     "qgis-gifs",
+     "load-layers.gif") |>
+  knitr::include_graphics()
+```
+
+## ArcGIS
+
+In ArcGIS Pro, click on the "Add Data" button on the Map tab, navigate to the 
+shapefile you want to load, and select OK.
+
+Once the dataset is loaded in ArcGIS, you'll see it listed in your
+contents panel and displayed in the map panel.
+
+```{r, echo=FALSE, fig.cap="Gif 2: Loading a shapefile in ArcGIS Pro", out.width = '100%'}
+here("week1",
+     "examples",
+     "arcgis-gifs",
+     "load-shp.gif") |>
+  knitr::include_graphics()
+```
+
+# Filtering data by attribute
+
+You may have loaded a set of features that includes some categories
+you aren't interested in. 
+
+## R
+
+You can use the `filter` function to filter based on the value
+of a variable.
+
+```{r}
+texas <- states |>
+  filter(NAME == "Texas")
+
+TX_cemeteries <- TX_landmarks |>
+  filter(MTFCC == "K2582")
+```
+
+
+## Python
+
+```{python}
+RI_state = states[states['NAME'] == 'Rhode Island']
+```
+
+## QGIS
+
+In QGIS, you'll do this in two steps. First, you'll select features
+based on an attribute value. 
+
+```{r, echo=FALSE, fig.cap="Gif 3: Selecting by attribute in QGIS", out.width = '100%'}
+here("week1",
+     "examples",
+     "qgis-gifs",
+     "select-by-attr.gif") |>
+  knitr::include_graphics()
+```
+
+Then, you'll export your selection as a new layer.
+
+```{r, echo=FALSE, fig.cap="Gif 4: Exporting selected features in QGIS", out.width = '100%'}
+here("week1",
+     "examples",
+     "qgis-gifs",
+     "exp-select.gif") |>
+  knitr::include_graphics()
+```
+
+# Filtering data by location
+
+You may have loaded data for a large area, and you're only interested 
+in the features within a smaller area. 
+
+## R
+
+You can use `st_filter` to keep only the features within
+a polygon.
+
+```{r}
+TX_rails <- rails |>
+  st_filter(texas)
+```
+
+## Python
+
+In Python, you can do this in two steps: 
+
+1. A spatial join (`sjoin`) will add columns from the polygon containing
+each feature. Features that aren't in a polygon will have NA (missing) values.
+2. `dropna` will filter out the rows with an NA value for a column
+that comes from the polygon you used in the spatial join.
+
+```{python}
+is_rail_in_RI = sjoin(rails, RI_state, how = 'left')
+
+RI_rails = is_rail_in_RI.dropna(subset=['STATEFP'])
+```
+
+
+# Viewing data in a map
+
+It can be helpful to take an initial look at your data on a map. ArcGIS
+and QGIS will display your data in a map panel when you load it. In R or 
+Python, you'll need to create some kind of plot to visualize your data.
+
+## R (interactive)
+
+The `leaflet` package in R can create interactive, html-based maps. These
+can be useful for exploring your data even if you ultimately want to be
+producing a static map. You can read about `leaflet` here: https://rstudio.github.io/leaflet/
+
+Set up the leaflet map with a call to the `leaflet()` function. Use the 
+`addTiles()` function if you want to display your data over a default
+OpenStreetMap base map. Then use `addPolygons()` to add polygon data,
+`addPolylines()` to add line data, or `addCircleMarkers()` to add point
+data.
+
+A useful trick if you just want to explore your data is to specify a 
+popup that will give you the value of a variable when you click on 
+a feature.
+
+```{r, warning=FALSE}
+leaflet() |>
+  addTiles() |>
+  addPolygons(data = texas, 
+              popup = ~NAME) |>
+  addPolylines(data = TX_rails, 
+               popup = ~FULLNAME, 
+               color = "red") |>
+  addCircleMarkers(data = TX_cemeteries,
+                   popup = ~FULLNAME,
+                   color = "black") 
+```
+
+## R (static)
+
+You can also make a quick static plot of a dataset using `ggplot`.
+
+```{r}
+ggplot(texas) +
+  geom_sf() +
+  geom_sf(data = TX_rails,
+          color = "red")
+```
+
+## Python (interactive)
+
+The `explore` function in `geopandas` is useful for creating a quick
+interactive map. By default, it will display the layer over OpenStreetMap tiles
+and add popups displaying values for all variables.
+
+In the code below, I'm creating the interactive map and saving it as an 
+html file. I can embed that map within my knitted RMarkdown document
+by adding the line `![](examples/guam_places.html){width=100% height=500px}`
+below the chunk (not within any code chunk).
+
+In a Jupyter notebook, you wouldn't need to save and embed the map. It would
+just render below your code chunk.
+
+```{python}
+int_map = RI_state.explore()
+int_map = RI_rails.explore(m = int_map, color = 'red')
+
+int_map.save("examples/RI_rail.html")
+```
+
+
+![](examples/RI_rail.html){width=100% height=500px}
+
+
+## Python (static)
+
+To create a static map in Python, use the `plot` function.
+
+```{python, eval=FALSE}
+stat_map = texas.plot()
+stat_map = TX_rails.plot(ax = stat_map, color = 'red')
+
+plt.savefig("examples/texas_rail.png")
+```
+
+![](examples/texas_rail.png)
+
+# Styling your layers
+
+You can control the appearance of features on your map by
+defining some of the following attributes
+
+* Polygons
+    * Fill color
+    * Fill opacity
+    * Fill pattern
+    * Line color
+    * Line opacity
+    * Line weight
+* Lines
+    * Color
+    * Opacity
+    * Weight
+* Points
+    * Size
+    * Shape
+    * Color
+    * Opacity
+    
+## R (interactive)
+
+In `leaflet`, `addPolygons` and `addCircleMarkers` have the following optional arguments:
+
+* `stroke` controls whether there will be a line border around the polygon. 
+The default is `TRUE`.
+* `fill` controls whether the polygon will be filled. The default is `TRUE`.
+If you set both `stroke` and `fill` to false, the polygon will be invisible.
+* `color` controls the color of the border.
+* `opacity` controls the transparency/opacity of the border. It ranges from 0 to 1, where 1 is
+fully opaque and 0 is fully transparent.
+* `weight` controls the line weight of the border. 
+* `fillColor` controls the fill color.
+* `fillOpacity` controls the fill opacity. It ranges from 0 to 1, where 1 is
+fully opaque and 0 is fully transparent.
+
+In addition, `addCircleMarkers` has an argument for `radius` that controls
+the size of the circles.
+
+`addPolylines` has optional arguments for `color`, `opacity`, and `weight`.
+
+```{r, warning=FALSE}
+leaflet() |>
+  addPolygons(data = texas, 
+              popup = ~NAME,
+              stroke = FALSE,
+              fillOpacity = 1,
+              fillColor = "white") |>
+  addPolylines(data = TX_rails, 
+               popup = ~FULLNAME, 
+               color = "gray",
+               weight = 1,
+               opacity = 1) |>
+  addCircleMarkers(data = TX_cemeteries,
+                   popup = ~FULLNAME,
+                   color = "black",
+                   radius = 0.5,
+                   opacity = 1) 
+```
+
+## R (static)
+
+In `ggplot`, you can set the following optional arguments in the
+`geom_sf` function:
+
+* `color` sets the color of a point or a line, or the outline
+color of a polygon (set `color = NA` for a polygon with no outline).
+* `fill` sets the fill color of a polygon (set `fill = NA` for 
+a polygon with no fill).
+* `alpha` sets the transparency of a feature. It ranges from 0 to 1, where 1 is
+fully opaque and 0 is fully transparent.
+* `linewidth` sets the weight of a line (or the outline of a polygon).
+* `linetype` sets the style of a line. Options include:
+    * `solid`
+    * `longdash`
+    * `dotted`
+    * `dotdash`
+    * `dashed`
+* `size` sets the size of a point
+* `shape` sets the shape of a point. The most common options are 
+indicated by numbers 0 through 25. Common options include
+    * 20 for a small, filled circle
+    * 15 for a square
+    * 17 for a triangle
+    * 18 for a diamond
+
+```{r}
+ggplot() +
+  geom_sf(data = texas,
+          color = NA,
+          fill = "cornsilk") +
+  geom_sf(data = TX_rails,
+          color = "black",
+          linewidth = 0.5,
+          linetype = "dotted") +
+  geom_sf(data = TX_cemeteries,
+          size = 4,
+          shape = 18,
+          color = "darkgreen",
+          alpha = 0.5)
+  
+```
+
+# Styling your plot
+
+You can also change the appearance of the plot itself.
+
+## R (static)
+
+In `ggplot`, you'll set the overall appearance of a plot using the
+`theme` function. In the example below, I'm removing the tick marks
+and axis text, setting the panel background to be light blue, and setting
+the grid lines (which are latitude and longitude lines in this case) to be
+dotted, darker blue lines.
+
+```{r}
+ggplot(africa) +
+  geom_sf() +
+  theme(axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        panel.background = element_rect(fill = "lightblue"),
+        panel.grid.major = element_line(color = "blue",
+                                        linetype = "dotted"))
+```
+
+Rather than messing around with all the details you can set in the `theme`
+function, you can also use one of many pre-defined themes. Most of 
+these were developed for use with scatter plots rather than maps.
+
+```{r}
+ggplot(africa) +
+  geom_sf() +
+  theme_light()
+```
+
+```{r}
+ggplot(africa) +
+  geom_sf() +
+  theme_linedraw()
+```
+
+For maps, you often don't want to show grid lines or axis text. 
+`theme_void` will remove all of this from your plot.
+
+```{r}
+ggplot(africa) +
+  geom_sf() +
+  theme_void()
+```
+
+The ggthemes package has a number of interesting pre-defined themes. Again, most 
+of them were developed for scatter plots. Here is a plot in the Wall Street Journal 
+house style.
+
+```{r}
+library(ggthemes)
+
+ggplot(africa) +
+  geom_sf() +
+  theme_wsj()
+```
+
+`ggthemes` also has a function called `theme_map` that gives you a nice, clean-looking
+map. You'll notice that it looks a lot like `theme_void`. The main difference is 
+in how the legend appears (not relevant in this example that doesn't
+have a legend).
+
+```{r}
+ggplot(africa) +
+  geom_sf() +
+  theme_map()
+```
+
+# Adding a legend
+
+## R (static)
+
+To include an item in a legend, you specify its appearance a little differently.
+In the example below, I replace `linetype = "dotted"` with `aes(linetype = "Railroad")`
+so that the item will appear in a legend labeled as "Railroad." Then I add 
+the function `scale_linetype_manual` to create a legend based on line type, and
+I specify the line type for railroads within that function.
+
+I do something similar to create a color-based legend for cemeteries.
+
+Note that this is actually creating two seperate legends (one for line types and one
+for colors) so I'm using the `legend.title` argument in the `theme` function 
+to remove all the legend titles.
+
+```{r}
+ggplot() +
+  geom_sf(data = texas,
+          color = NA,
+          fill = "cornsilk") +
+  geom_sf(data = TX_rails,
+          color = "black",
+          linewidth = 0.5,
+          aes(linetype = "Railroad")) +
+  geom_sf(data = TX_cemeteries,
+          size = 4,
+          shape = 18,
+          aes(color = "Cemetery"),
+          alpha = 0.5) +
+  scale_color_manual(values = "darkgreen") +
+  scale_linetype_manual(values = "dotted") +
+  theme_map() +
+  theme(legend.title = element_blank())
+  
+```
+
+# Adding a north arrow
+
+A north arrow is not always necessary, but it can be helpful depending on your audience
+and on the purpose of your map.
+
+## R (static)
+
+The `ggspatial` package includes an `annotation_north_arrow` function that will 
+add a north arrow to your map. It includes the following arguments:
+
+* `location` indicates where the north arrow will be displayed. Options
+include `tl` (top left), `tr` (top right), `bl` (bottom left), and `br` 
+(bottom right)
+* `style` indicates the arrow style. Options include:
+    * north_arrow_orienteering
+    * north_arrow_fancy_orienteering
+    * north_arrow_minimal
+    * north_arrow_nautical
+
+```{r}
+ggplot(africa) +
+  geom_sf() +
+  annotation_north_arrow(location = "tr",
+                         style = north_arrow_minimal) +
+  theme_map()
+```
+
+# Adding a scale bar
+
+## R (static)
+
+The `ggspatial` package includes an `annotation_scale` function that will 
+add a scale bar to your map. It includes the following arguments:
+
+* `location` indicates where the scale bar will be displayed. Options
+include `tl` (top left), `tr` (top right), `bl` (bottom left), and `br` 
+(bottom right)
+* `style` indicates the scale bar style: either `"bars"` or `"ticks"`.
+
+```{r}
+ggplot(open_space) +
+  geom_sf() +
+  annotation_scale(location = "br",
+                   style = "ticks") +
+  theme_map()
+```
+
+# Adding annotation
+
+The easiest way to annotate a static map may be to bring it into illustrator, but you
+can also do it within your GIS program.
+
+## R (static)
+
+The `annotate` function will place text on your map. You need to specify
+the following arguments:
+
+* `geom`: Set `geom = "text"` to place text on the map.
+* `x`, `y`: The x- and y-coordinates of the location the text 
+should be placed, in the coordinate system of the map (if you're 
+plotting the map without grid lines, you might want to make a quick 
+plot that shows them so you can find the right values to place your annotation).
+* `label`: The text you want to place. There is no text wrapping; you can use
+`\n` within your next string to move to a new line.
+
+The following optional arguments are also helpful:
+
+* `hjust`: The horizontal justification of your text. The default is 
+0.5, which indicates centered text (and x-coordinate you've used
+to place the text will be for the middle of the text). A value of 0 
+will give you left-justified text, and a value of 1 will give you
+right-justified text.
+* `vjust`: The vertical justification of your text. A value of 
+0.5 means the y-coordinate you've specified is for the center
+of the text. A value of 0 means the y-coordinate is for the
+bottom of the text. A value of 1 means the y-coordiate is for the top of 
+the text.
+
+```{r}
+ggplot(open_space) +
+  geom_sf() +
+  annotate(geom = "text",
+           x = -71.1,
+           y = 42.25,
+           label = "This is a map of\nopen space in Boston",
+           hjust = 0,
+           vjust = 1) 
+```
+
+# Saving your map
+
+Please don't just take screenshots of the maps you create in a GIS program. You can 
+save them to a variety of file types.
+
+## R (static)
+
+The `ggsave` function give you a nice easy way to save a `ggplot` map. By default,
+it saves your most recent plot. You should specify the following arguments:
+
+* `filename`: The name of the file. `ggsave` will guess the file format (e.g. jpg, png, pdf)
+based on the filename's extension. You can pipe the path from the `here()` function 
+to make sure you end up in the right directory.
+* `width`, `height`: The dimensions of the image you want to save.
+* `units`: The units of the dimensions you've specified, one of:
+   * `"in"` for inches
+   * `"cm"` for centimeters
+   * `"mm"` for millimeters
+   * `"px"` for pixels
+   
+For raster images (e.g. jpg or png), you should also specify the resolution with `dpi=`.
+
+```{r}
+here("week1", 
+     "examples",
+     "open-space.pdf") |>
+  ggsave(width = 11,
+         height = 8.5,
+         units = "in")
+```
+

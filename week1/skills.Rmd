@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 #knitr::knit_engines$set(python = reticulate::eng_python) 
 ```
 
-This page introduces some of the skill that are useful for displaying
+This page introduces useful skills for displaying
 geospatial data on a map using R, Python, QGIS, or ARcGIS.
 
 The R skills on this page use the following R packages:
@@ -25,6 +25,9 @@ library(tidyverse)
 library(leaflet)
 library(ggspatial)
 library(ggthemes)
+library(htmlwidgets)
+library(here)
+library(RColorBrewer)
 ```
 
 In order to run Python code from RStudio, I'm using the `reticulate`
@@ -120,7 +123,7 @@ containing the set of files.
 ```{python}
 open_space = geopandas.read_file(here("week1/data/Open_Space.geojson"))
 
-guam_places = geopandas.read_file(here("week1/data/tl_2022_66_place"))
+RI_landmarks = geopandas.read_file(here("week1/data/tl_2022_44_pointlm"))
 ```
 
 ## QGIS
@@ -133,7 +136,7 @@ with its associated files).
 Once the dataset is loaded in QGIS, you'll see it listed in your
 layers panel and displayed in the map panel.
 
-```{r, echo=FALSE, fig.cap="Gif 1: Loading datasets in QGIS", out.width = '100%'}
+```{r, echo=FALSE, out.width = '100%'}
 here("week1",
      "examples",
      "qgis-gifs",
@@ -149,7 +152,7 @@ shapefile you want to load, and select OK.
 Once the dataset is loaded in ArcGIS, you'll see it listed in your
 contents panel and displayed in the map panel.
 
-```{r, echo=FALSE, fig.cap="Gif 2: Loading a shapefile in ArcGIS Pro", out.width = '100%'}
+```{r, echo=FALSE, out.width = '100%'}
 here("week1",
      "examples",
      "arcgis-gifs",
@@ -173,6 +176,9 @@ texas <- states |>
 
 TX_cemeteries <- TX_landmarks |>
   filter(MTFCC == "K2582")
+
+TX_golf <- TX_landmarks |>
+  filter(MTFCC == "K2561")
 ```
 
 
@@ -187,7 +193,7 @@ RI_state = states[states['NAME'] == 'Rhode Island']
 In QGIS, you'll do this in two steps. First, you'll select features
 based on an attribute value. 
 
-```{r, echo=FALSE, fig.cap="Gif 3: Selecting by attribute in QGIS", out.width = '100%'}
+```{r, echo=FALSE, out.width = '100%'}
 here("week1",
      "examples",
      "qgis-gifs",
@@ -197,11 +203,23 @@ here("week1",
 
 Then, you'll export your selection as a new layer.
 
-```{r, echo=FALSE, fig.cap="Gif 4: Exporting selected features in QGIS", out.width = '100%'}
+```{r, echo=FALSE, out.width = '100%'}
 here("week1",
      "examples",
      "qgis-gifs",
      "exp-select.gif") |>
+  knitr::include_graphics()
+```
+
+## ArcGIS Pro
+
+In ArcGIS, you can apply a filter while exporting features.
+
+```{r, echo=FALSE, out.width = '100%'}
+here("week1",
+     "examples",
+     "arcgis-gifs",
+     "exp-filter.gif") |>
   knitr::include_graphics()
 ```
 
@@ -235,6 +253,51 @@ is_rail_in_RI = sjoin(rails, RI_state, how = 'left')
 RI_rails = is_rail_in_RI.dropna(subset=['STATEFP'])
 ```
 
+## QGIS
+
+In QGIS, you can select features based on their location within
+a polygon.
+
+```{r, echo=FALSE, out.width = '100%'}
+here("week1",
+     "examples",
+     "qgis-gifs",
+     "sp-filter.gif") |>
+  knitr::include_graphics()
+```
+
+Then export the selection.
+
+```{r, echo=FALSE, out.width = '100%'}
+here("week1",
+     "examples",
+     "qgis-gifs",
+     "exp-select.gif") |>
+  knitr::include_graphics()
+```
+
+## ArcGIS
+
+In ArcGIS, you can select features based on their location within
+a polygon.
+
+```{r, echo=FALSE, out.width = '100%'}
+here("week1",
+     "examples",
+     "arcgis-gifs",
+     "sp-filter.gif") |>
+  knitr::include_graphics()
+```
+
+Then export the selection.
+
+```{r, echo=FALSE, out.width = '100%'}
+here("week1",
+     "examples",
+     "arcgis-gifs",
+     "save-select.gif") |>
+  knitr::include_graphics()
+```
 
 # Viewing data in a map
 
@@ -290,7 +353,7 @@ and add popups displaying values for all variables.
 
 In the code below, I'm creating the interactive map and saving it as an 
 html file. I can embed that map within my knitted RMarkdown document
-by adding the line `![](examples/guam_places.html){width=100% height=500px}`
+by adding the line `![](examples/RI_rail.html){width=100% height=500px}`
 below the chunk (not within any code chunk).
 
 In a Jupyter notebook, you wouldn't need to save and embed the map. It would
@@ -309,7 +372,9 @@ int_map.save("examples/RI_rail.html")
 
 ## Python (static)
 
-To create a static map in Python, use the `plot` function.
+To create a static map in Python, use the `plot` function. Create the plot with 
+an initial layer. To add additional layer, use the `ax` argument to add them 
+to the initial map.
 
 ```{python, eval=FALSE}
 stat_map = texas.plot()
@@ -320,7 +385,7 @@ plt.savefig("examples/texas_rail.png")
 
 ![](examples/texas_rail.png)
 
-# Styling your layers
+# Setting symbology by layer
 
 You can control the appearance of features on your map by
 defining some of the following attributes
@@ -425,6 +490,181 @@ ggplot() +
   
 ```
 
+## Python (static)
+
+The `plot` function in `geopandas` includes the following arguments you can 
+use to style your layers.
+
+* `edgecolor`: The outline color for a polygon
+* `facecolor`: The fill color for a polygon 
+* `linewidth`: The line width for a line or polygon outline
+* `linestyle`: The line style for a line or polygon outline. Could be one of:
+    * `'-'` for a solid line
+    * `'--'` for a dashed line
+    * `'-.'` for a dash-dot line
+    * `':'` for a dotted line
+* `alpha`: The transparency/opacity the feature.
+* `markersize`: The marker size for points.
+* `marker`: The marker shape for points. Could be one of:
+    * `'o'`: for a circle marker
+    * `'v`: for a triangle marker
+    * `'s'`: for a square marker
+    * `'+'`: for a plus marker
+    * `'x'`: for an x marker
+* `color`: The color of the feature.
+
+```{python, eval=FALSE}
+stat_map = RI_state.plot(edgecolor = 'gray', 
+                         facecolor = 'cornsilk')
+                         
+stat_map = RI_landmarks.plot(ax = stat_map,
+                             marker = 's',
+                             markersize = 3,
+                             alpha = 0.3,
+                             color = 'darkgreen')
+                             
+stat_map = RI_rails.plot(ax = stat_map, 
+                         color = 'black',
+                         linewidth = 1,
+                         linestyle = ':')
+
+plt.savefig("examples/RI_rails_lm.png")
+```
+
+![](examples/RI_rails_lm.png)
+
+## QGIS
+
+In QGIS, you can get to the options to change your feature symbology
+by double-clicking on the symbol in the layers panel, then selecting
+the tab with an icon that looks like a little paint brush.
+
+```{r, echo=FALSE, out.width = '100%'}
+here("week1",
+     "examples",
+     "qgis-gifs",
+     "symbols.gif") |>
+  knitr::include_graphics()
+```
+
+## ArcGIS
+
+In ArcGIS, you can change the symbology of a layer by double-clicking
+the symbol in the contents pane.
+
+```{r, echo=FALSE, out.width = '100%'}
+here("week1",
+     "examples",
+     "arcgis-gifs",
+     "symbols.gif") |>
+  knitr::include_graphics()
+```
+
+# Setting symbology by attribute
+
+You might want to vary the display of features in a layer, depending on
+the values of a variable.
+
+## R (interactive)
+
+In `leaflet`, you'll need to start by defining a color palette that 
+will be mapped to a variable. The `RColorBrewer` package has some 
+nice, pre-defined (and colorblind-friendly) color palettes you
+can choose from. These are shown below.
+
+```{r, fig.height=8, echo=FALSE}
+RColorBrewer::display.brewer.all()
+```
+
+Use the `colorNumeric()` function to map a palette to a continuous variable or 
+`colorFactor()` to map a palette to a categorical variable.
+
+```{r}
+owner_pal <- colorFactor(palette = "Set3",
+                        domain = open_space$OWNERSHIP)
+
+size_pal <- colorNumeric(palette = "PuBuGn",
+                         domain = open_space$ACRES)
+```
+
+Then, in your leaflet map, you can use the palette you've defined to 
+set the color of a set of features.
+
+```{r}
+leaflet(open_space) |>
+  addPolygons(fillColor = ~owner_pal(OWNERSHIP),
+              color = "white",
+              weight = 0.5,
+              fillOpacity = 1)
+```
+
+
+## R (static)
+
+In `ggplot`, you can specify the variable that will control the symbology 
+within an `aes()` function. A color palette will be assigned by default.
+
+```{r}
+ggplot(open_space) +
+  geom_sf(aes(fill = OWNERSHIP))
+```
+
+You can specify an `RColorBrewer` palette using the `scale_fill_brewer()` function.
+
+```{r}
+ggplot(open_space) +
+  geom_sf(aes(fill = OWNERSHIP)) +
+  scale_fill_brewer(palette = "Set3")
+```
+
+## Python (static)
+
+You can vary a color by attribute in a geopandas plot by selecting a 
+variable for the `column` argument and a color palette using the
+`cmap` argument.
+
+```{python, eval=FALSE}
+bos_op_space = open_space.plot(column = "OWNERSHIP",
+                               cmap = "Set3")
+
+plt.savefig("examples/bos_op_space.png")
+```
+
+![](examples/bos_op_space.png)
+
+## QGIS
+
+In QGIS, double-click on the symbol in the layers pane to open a 
+symbology window. Use the drop-down menu at the top of the window
+to change the method from "Single symbol" to "Categorized" or
+"Graduated." Select a variable from the "Value" drop-down menu and
+click the "Classify" button at the bottom of the window. You can
+select a new color ramp by selecting from the "Color ramp"
+drop-down menu.
+
+```{r, echo=FALSE, out.width = '100%'}
+here("week1",
+     "examples",
+     "qgis-gifs",
+     "cat-vars.gif") |>
+  knitr::include_graphics()
+```
+
+## ArcGIS
+
+In ArcGIS, you can double-click on the symbol in the contents pane
+to get to a symbology window. In the "Primary symbology" drop-down
+menu, select "Unique values" for categorical variables or "Unclassed Colors"
+for continuous variables. 
+
+```{r, echo=FALSE, out.width = '100%'}
+here("week1",
+     "examples",
+     "arcgis-gifs",
+     "vars.gif") |>
+  knitr::include_graphics()
+```
+
 # Styling your plot
 
 You can also change the appearance of the plot itself.
@@ -495,11 +735,144 @@ ggplot(africa) +
   theme_map()
 ```
 
+## Python (static)
+
+You can use the Python function `set_facecolor` to set the background color
+for your map and the `grid` function to add a grid. 
+
+You can turn off tick labels with `set_xticklabels` and `set_yticklabels`.
+
+You can turn off the border around the plot window using `spines.set_visible(False)`.
+
+```{python, eval=FALSE}
+stat_map = RI_state.plot(edgecolor = 'gray', 
+                         facecolor = 'cornsilk')
+
+stat_map.set_facecolor('lightblue')
+
+stat_map.grid(color='blue', linestyle=':', linewidth=0.5)
+
+stat_map.set_xticklabels([])
+stat_map.set_yticklabels([])
+
+stat_map.spines['top'].set_visible(False)
+stat_map.spines['bottom'].set_visible(False)
+stat_map.spines['right'].set_visible(False)
+stat_map.spines['left'].set_visible(False)
+
+plt.savefig("examples/RI_blue_grid.png")
+```
+
+![](examples/RI_blue_grid.png)
+
+## QGIS
+
+In QGIS, you can create a map layout by selecting "New Print Layout..." from
+the "Project" menu. This will open a layout in a new window. From the layout
+window, select "Add Map" from the "Add Item" menu to add a map to your layout.
+
+```{r, echo=FALSE, out.width = '100%'}
+here("week1",
+     "examples",
+     "arcgis-gifs",
+     "make-layout.gif") |>
+  knitr::include_graphics()
+```
+
+Right-click on the map frame to open the "Item properties" tab,
+which includes settings for displaying a grid and setting the
+map's background color.
+
+```{r, echo=FALSE, out.width = '100%'}
+here("week1",
+     "examples",
+     "qgis-gifs",
+     "style-layout.gif") |>
+  knitr::include_graphics()
+```
+
+## ArcGIS
+
+In ArcGIS, you can create a map layout by selecting "New Layout" on the "Insert"
+tab and adding a map frame to it.
+
+```{r, echo=FALSE, out.width = '100%'}
+here("week1",
+     "examples",
+     "arcgis-gifs",
+     "make-layout.gif") |>
+  knitr::include_graphics()
+```
+
+You can find options to style the map pane by double-clicking on it. You can also add
+grid lines.
+
+```{r, echo=FALSE, out.width = '100%'}
+here("week1",
+     "examples",
+     "arcgis-gifs",
+     "style-layout.gif") |>
+  knitr::include_graphics()
+```
+
 # Adding a legend
+
+A legend is often (but not always) necessary for your audience to understand
+your map.
+
+## R (interactive)
+
+In `leaflet` legends can only be used for colors. If the data you want in
+your legend are in separate layers, the easiest approach to creating 
+a legend is to specify colors manually.
+
+```{r, warning=FALSE}
+leaflet() |>
+  addPolygons(data = texas, 
+              popup = ~NAME,
+              stroke = FALSE,
+              fillOpacity = 1,
+              fillColor = "white") |>
+  addCircleMarkers(data = TX_cemeteries,
+                   popup = ~FULLNAME,
+                   stroke = FALSE,
+                   fillColor = "black",
+                   radius = 4,
+                   opacity = 0.7) |>
+  addCircleMarkers(data = TX_golf,
+                   popup = ~FULLNAME,
+                   stroke = FALSE,
+                   fillColor = "darkgreen",
+                   radius = 4,
+                   opacity = 0.7) |>
+  addLegend(position = "bottomleft",
+            colors = c("black", "darkgreen"),
+            labels = c("Cemetery", "Golf course"),
+            opacity = 0.7)
+```
+
+If you have a color palette mapped to a variable and you want a 
+legend that refers to that color palette, you can pass the palette 
+and the name of the variable into the `addLegend` function.
+
+```{r, warning=FALSE}
+size_pal <- colorNumeric(palette = "PuBuGn",
+                         domain = open_space$ACRES)
+
+leaflet(open_space) |>
+  addPolygons(popup = ~SITE_NAME,
+              stroke = FALSE,
+              fillOpacity = 1,
+              fillColor = ~size_pal(ACRES)) |>
+  addLegend(pal = size_pal,
+            values = ~ACRES,
+            title = "Park size (acres)",
+            position = "bottomright")
+```
 
 ## R (static)
 
-To include an item in a legend, you specify its appearance a little differently.
+To include an item in a legend for `ggplot`, you specify its appearance a little differently.
 In the example below, I replace `linetype = "dotted"` with `aes(linetype = "Railroad")`
 so that the item will appear in a legend labeled as "Railroad." Then I add 
 the function `scale_linetype_manual` to create a legend based on line type, and
@@ -507,7 +880,7 @@ I specify the line type for railroads within that function.
 
 I do something similar to create a color-based legend for cemeteries.
 
-Note that this is actually creating two seperate legends (one for line types and one
+Note that this is actually creating two separate legends (one for line types and one
 for colors) so I'm using the `legend.title` argument in the `theme` function 
 to remove all the legend titles.
 
@@ -529,7 +902,208 @@ ggplot() +
   scale_linetype_manual(values = "dotted") +
   theme_map() +
   theme(legend.title = element_blank())
-  
+```
+
+
+If you have a color palette mapped to a variable, ggplot will 
+automatically add a legend, which you can customize further
+in the `scale_fill_brewer()` function.
+
+The `theme` function can also change the position of the legend.
+
+```{r}
+ggplot(open_space) +
+  geom_sf(aes(fill = OWNERSHIP)) +
+  scale_fill_brewer(palette = "Set3", 
+                    name = "Property owner") +
+  theme_map() +
+  theme(legend.position = c(0.6, 0),
+        legend.background = element_rect(fill = alpha("white", 0.7)))
+```
+
+## Python (static)
+
+You can add a legend to a `geopandas` plot by setting `legend = True` when
+you create the plot.
+
+Python's `geopandas` package will add a what the `matplotlib` package calls a
+`colorbar` for continuous variables. You can use `legend_kwds` to control the orientation
+and title for the color bar. 
+
+```{python, eval=FALSE}
+bos_op_space = open_space.plot(column = "ACRES",
+                               cmap = "PuBuGn",
+                               legend = True,
+                               legend_kwds={'orientation': 'horizontal',
+                                            'label' : 'Park size (acres)'})
+
+plt.savefig("examples/bos_legend_size.png")
+```
+
+![](examples/bos_legend_size.png)
+
+For categorical variables, `geopandas` will add a what the `matplotlib` package calls a
+`legend` for continuous variables. You can use `legend_kwds` to control the location 
+(within the plot) and title for the legend. It's worth noticing that the available keywords
+are different for continuous and categorical variables (e.g. `'title'` for categorical
+variables and `'label` for continuous variables) and that these two types of legends 
+behave differently.
+
+```{python, eval=FALSE}
+bos_op_space = open_space.plot(column = "OWNERSHIP",
+                               cmap = "Set1",
+                               legend = True,
+                               legend_kwds={'loc': 'lower right',
+                                            'title': 'Park owner'})
+
+plt.savefig("examples/bos_legend_owner.png")
+```
+
+![](examples/bos_legend_owner.png)
+
+## QGIS
+
+In QGIS, add a legend by selecting "Add Legend" from the "Add Item" menu in the
+layout window. In the "Item Properties" pane for the legend, you can re-order, 
+rename, or remove legend items.
+
+```{r, echo=FALSE, out.width = '100%'}
+here("week1",
+     "examples",
+     "qgis-gifs",
+     "legend.gif") |>
+  knitr::include_graphics()
+```
+
+## ArcGIS
+
+In ArcGIS, you can use the "Legend" button on the "Insert" tab to add a legend
+to your map. You can rename legend items by renaming the layer in the contents
+pane. You can remove an item from the legend (without removing the associated 
+layer from the map) by unchecking its box in the Legend group of the contents pane.
+
+```{r, echo=FALSE, out.width = '100%'}
+here("week1",
+     "examples",
+     "arcgis-gifs",
+     "legend.gif") |>
+  knitr::include_graphics()
+```
+
+# Setting map extents
+
+In general, the map extents will be set to include all the data in your map. 
+You may want to include less or more than this.
+
+## R (interactive)
+
+With `leaflet` you can set the initial Zoom level, the initial map center, 
+the minimum zoom level, and the map extents beyond which a user can't pan away.
+
+`setView` let's you define the initial center of the map and the map's initial
+zoom level. Zoom level can be values between 0 and 20 or so. A value of 0 is 
+appropriate for representing the entire world and a value of 20 us appropriate
+for showing a single building or parcel. 
+
+Within the initial `leaflet` function that sets up the map, you can specify
+`minZoom` within `options = leafletOptions()` to keep the user from 
+zooming out beyond a certain zoom level.
+
+You can also use setMaxBounds to keep the user from panning awat from your 
+initial map extents. You need to specify minimum and maximum latitude values
+(`lat1` and `lat2`) and minimum and maximum longitude values (`lng1` and `lng2`).
+The `st_bbox` function in the `sf` package can be a useful way to get the values
+for a bounding box around a specific layer.
+
+
+```{r, warning=FALSE}
+TX_bbox <- st_bbox(texas)
+
+leaflet(options = leafletOptions(minZoom = 6)) |>
+  setView(lng = -99.88829,
+          lat = 32.75079,
+          zoom = 7) |>
+  setMaxBounds(lng1 = as.numeric(TX_bbox["xmin"]),
+               lng2 = as.numeric(TX_bbox["xmax"]),
+               lat1 = as.numeric(TX_bbox["ymin"]),
+               lat2 = as.numeric(TX_bbox["ymax"])) |>
+  addPolygons(data = texas, 
+              popup = ~NAME,
+              stroke = FALSE,
+              fillOpacity = 1,
+              fillColor = "white") |>
+  addPolylines(data = TX_rails, 
+               popup = ~FULLNAME, 
+               color = "gray",
+               weight = 1,
+               opacity = 1) 
+```
+
+## R (static)
+
+In `ggplot` you can set the map extents using the `coord_sf()` function
+in the `ggspatial` package. In the example below, I'm limiting my 
+map of African countries to show only the area between zero and twenty
+degrees latitude and between zero and twenty degrees longitude.
+
+```{r}
+ggplot(africa) +
+  geom_sf() +
+  annotation_north_arrow(location = "tr",
+                         style = north_arrow_minimal) +
+  coord_sf(xlim = c(0, 20),
+           ylim = c(0, 20)) +
+  theme_map()
+```
+
+## Python (static)
+
+You can use the `geopandas` functions `set_xlim()` and
+`set_ylim()` to set the map extents.
+
+```{python, eval=FALSE}
+bos_op_space = open_space.plot(column = "OWNERSHIP",
+                               cmap = "Set1",
+                               legend = True,
+                               legend_kwds={'loc': 'lower right',
+                                            'title': 'Park owner'})
+
+bos_op_space.set_xlim(-71.2, -70.52)
+bos_op_space.set_ylim(42.17, 42.45)
+
+plt.savefig("examples/bos_wide.png")
+```
+
+![](examples/bos_wide.png)
+
+## QGIS
+
+In the "Layouts" window in QGIS, select the map frame, then click the button
+for "you can click the "Activate" button to activate
+your map frame."Move Item Content." This will allow you to pan and zoom the map 
+within the layout.
+
+```{r, echo=FALSE, out.width = '100%'}
+here("week1",
+     "examples",
+     "qgis-gifs",
+     "extent.gif") |>
+  knitr::include_graphics()
+```
+
+## ArcGIS
+
+From the "Layouts" tab in ArcGIS, you can click the "Activate" button to activate
+your map frame. This will allow you to pan and zoom the map within the layout.
+When you are satisfied, click the "Layout" button and then the "Close Activation"
+button.
+
+```{r, echo=FALSE, out.width = '100%'}
+here("week1",
+     "examples",
+     "arcgis-gifs",
+     "map-extent.gif") |>
+  knitr::include_graphics()
 ```
 
 # Adding a north arrow
@@ -559,7 +1133,35 @@ ggplot(africa) +
   theme_map()
 ```
 
+## QGIS
+
+You can add a north arrow by selecting "Add North Arrow" from the "Add Item" 
+menu in the Layout window. The item properties window includes options for
+different north arrow styles.
+
+```{r, echo=FALSE, out.width = '100%'}
+here("week1",
+     "examples",
+     "qgis-gifs",
+     "north.gif") |>
+  knitr::include_graphics()
+```
+
+## ArcGIS
+
+You can add a north arrow using the "North Arrow" button on the "Insert" tab.
+
+```{r, echo=FALSE, out.width = '100%'}
+here("week1",
+     "examples",
+     "arcgis-gifs",
+     "north-arrow.gif") |>
+  knitr::include_graphics()
+```
+
 # Adding a scale bar
+
+A scale bar may be helpful to give your reader a sense of distances.
 
 ## R (static)
 
@@ -579,10 +1181,76 @@ ggplot(open_space) +
   theme_map()
 ```
 
+## QGIS
+
+You can add a scale bar by selecting "Add Scale Bar" from the "Add Item" 
+menu in the Layout window. 
+
+```{r, echo=FALSE, out.width = '100%'}
+here("week1",
+     "examples",
+     "qgis-gifs",
+     "scale.gif") |>
+  knitr::include_graphics()
+```
+
+## ArcGIS
+
+You can add a scale bar using the "Scale Bar" button on the "Insert" tab.
+
+```{r, echo=FALSE, out.width = '100%'}
+here("week1",
+     "examples",
+     "arcgis-gifs",
+     "scale-bar.gif") |>
+  knitr::include_graphics()
+```
+
 # Adding annotation
 
 The easiest way to annotate a static map may be to bring it into illustrator, but you
 can also do it within your GIS program.
+
+## R (interactive)
+
+You could just embed your leaflet map within an RMarkdown file and include
+text outside the code chunk. If you want to add annotation to the map itself,
+you can hack a legend to act as map annotation.
+
+```{r, warning=FALSE}
+leaflet() |>
+  addPolygons(data = texas, 
+              popup = ~NAME,
+              stroke = FALSE,
+              fillOpacity = 1,
+              fillColor = "white") |>
+  addCircleMarkers(data = TX_cemeteries,
+                   popup = ~FULLNAME,
+                   stroke = FALSE,
+                   fillColor = "black",
+                   radius = 4,
+                   opacity = 0.7) |>
+  addCircleMarkers(data = TX_golf,
+                   popup = ~FULLNAME,
+                   stroke = FALSE,
+                   fillColor = "darkgreen",
+                   radius = 4,
+                   opacity = 0.7) |>
+  addLegend(position = "bottomleft",
+            colors = c("black", "darkgreen"),
+            labels = c("Cemetery", "Golf course"),
+            opacity = 0.7) |>
+  addLegend(position = "bottomright",
+            colors = c("white", "white"),
+            opacity = 0,
+            labels = c("Source: Census TIGER files (landmarks)",
+                       "Here is another comment about this map.")) |>
+  addLegend(position = "topright",
+            title = "Golf Courses and Cemeteries in Texas",
+            colors = "white",
+            opacity = 0,
+            labels="")
+```
 
 ## R (static)
 
@@ -610,6 +1278,9 @@ of the text. A value of 0 means the y-coordinate is for the
 bottom of the text. A value of 1 means the y-coordiate is for the top of 
 the text.
 
+You can also use the `ggtitle` function to add a title and (optionally) a 
+subtitle to your map.
+
 ```{r}
 ggplot(open_space) +
   geom_sf() +
@@ -618,13 +1289,62 @@ ggplot(open_space) +
            y = 42.25,
            label = "This is a map of\nopen space in Boston",
            hjust = 0,
-           vjust = 1) 
+           vjust = 1) +
+  ggtitle(label = "Open Space in Boston",
+          subtitle = "VIS 2128")
+```
+
+## QGIS
+
+You can add text to your map by selecting "Add Label" from the "Add Item" 
+menu in the Layout window. In the Item Properties pane, you can edit
+the text box content and set the font.
+
+```{r, echo=FALSE, out.width = '100%'}
+here("week1",
+     "examples",
+     "qgis-gifs",
+     "text.gif") |>
+  knitr::include_graphics()
+```
+
+## ArcGIS
+
+You can add a text box by selecting "Text" from the "Graphic" drop-down menu on the
+"Insert" tab. You can edit the text box content and text style by double-clicking
+on the text box or right-clicking and selecting "Properties."
+
+```{r, echo=FALSE, out.width = '100%'}
+here("week1",
+     "examples",
+     "arcgis-gifs",
+     "text-box.gif") |>
+  knitr::include_graphics()
 ```
 
 # Saving your map
 
 Please don't just take screenshots of the maps you create in a GIS program. You can 
 save them to a variety of file types.
+
+## R (interactive)
+
+If your interactive map is embedded in an RMarkdown file, you can just knit the
+file to save it as an html file.
+
+If you want a stand-alone html file that's just your map, you can
+pipe the map in the `saveWidget` function in the `htmlwidgets` package.
+
+```{r, warning=FALSE}
+leaflet() |>
+  addPolygons(data = texas, 
+              popup = ~NAME,
+              stroke = FALSE,
+              fillOpacity = 1,
+              fillColor = "white") |>
+  saveWidget(file = "texas.html")
+
+```
 
 ## R (static)
 
@@ -652,3 +1372,56 @@ here("week1",
          units = "in")
 ```
 
+## Python (interactive)
+
+You can call the `save()` function on an interactive map to 
+save it as an html file.
+
+```{python}
+int_map = RI_state.explore()
+
+int_map.save("examples/RI.html")
+```
+
+## Python (static)
+
+The `savefig` function will save your most recent plot.
+
+```{python, eval=FALSE}
+stat_map = RI_state.plot(edgecolor = 'gray', 
+                         facecolor = 'cornsilk')
+
+stat_map.set_axis_off()
+
+plt.savefig("examples/RI.pdf")
+```
+
+## QGIS
+
+The layout window in QGIS will have buttons to
+
+* Print the layout
+* Save the layout as an image
+* Save the layout as a PDF
+
+```{r, echo=FALSE, out.width = '100%'}
+here("week1",
+     "examples",
+     "qgis-gifs",
+     "save.gif") |>
+  knitr::include_graphics()
+```
+
+## ArcGIS
+
+Save your layout by selecting "Export Layout" from share tab. Note that
+you can save as a PDF or as an AIX file that you can work with futher in 
+Adobe Illustrator.
+
+```{r, echo=FALSE, out.width = '100%'}
+here("week1",
+     "examples",
+     "arcgis-gifs",
+     "save-layout.gif") |>
+  knitr::include_graphics()
+```

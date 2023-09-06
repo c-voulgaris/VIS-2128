@@ -1,8 +1,3 @@
-# Spatial Analysis (VIS 2128)
-
-This site contains resources for the Spatial Analysis course taught by Carole Turley Voulgaris at the 
-Harvard Graduate School of Design.
-
 ## Week 1
 
 **Dataset of the week:** [Census TIGER files](https://c-voulgaris.github.io/VIS-2128/week1/dataset-tiger.html)

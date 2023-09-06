@@ -2,7 +2,9 @@
 
 **Dataset of the week:** [Census TIGER files](https://c-voulgaris.github.io/VIS-2128/week1/dataset-tiger.html)
 
-[**Skills:**](https://c-voulgaris.github.io/VIS-2128/week1/skills.html)
+**Skills:**
+
+[Skills tutorials](https://c-voulgaris.github.io/VIS-2128/week1/skills.html)
 
 * Displaying multiple layers of data on a map
 * Filtering data by attribute

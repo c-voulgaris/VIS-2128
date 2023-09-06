@@ -367,3 +367,6 @@ MA_landmarks_pt <- landmarks(state = "MA")
 # Load the polygon landmarks for Guam
 guam_landmarks_poly <- landmarks(state = "Guam", type = "area")
 ```
+
+If you are working in Python, there is a version of the `tigris` package for Python called `pygris`.
+The port from R to Python is ongoing and `pygris` is less complete than `tigris`.

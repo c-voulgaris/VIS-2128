@@ -23,4 +23,4 @@
 
 ## Week 2
 
-**Dataset of the week:** [Census surveys](https://c-voulgaris.github.io/VIS-2128/week2/census-survey.html)
+**Dataset of the week:** [Census surveys](https://c-voulgaris.github.io/VIS-2128/week2/dataset-census-survey.html)

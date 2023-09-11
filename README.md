@@ -1,3 +1,5 @@
+# Resources for weekly assignments
+
 ## Week 1
 
 **Dataset of the week:** [Census TIGER files](https://c-voulgaris.github.io/VIS-2128/week1/dataset-tiger.html)
@@ -15,5 +17,10 @@
 
 **Examples of complete assignments:**
 
-* [Colleges in Cambridge](https://c-voulgaris.github.io/VIS-2128/week1/examples/colleges.html)
+* [Education  in Mahattan](https://c-voulgaris.github.io/VIS-2128/week1/examples/nyc-colleges.html)
 * [Railroads and urban areas](https://c-voulgaris.github.io/VIS-2128/week1/examples/railway.pdf)
+* [Landmarks in Cambridge](https://c-voulgaris.github.io/VIS-2128/week1/examples/cambridge-landmarks.pdf)
+
+## Week 2
+
+**Dataset of the week:** [Census surveys](https://c-voulgaris.github.io/VIS-2128/week2/census-curvey.html)

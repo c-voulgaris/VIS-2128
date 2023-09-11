@@ -1,0 +1,345 @@
+---
+title: "U.S. Census surveys"
+subtitle: "Dataset of the Week (Week 2)"
+output: 
+  rmdformats::readthedown:
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+
+library(here)
+library(tidyverse)
+
+```
+
+
+# Background
+
+The United States Census Bureau conducts dozens of surveys and data
+collection programs. You can find a list of them here: [https://www.census.gov/programs-surveys/surveys-programs.html]{target="_blank"}.
+
+You can read the Census Bureau's description of its mission, authority,
+and activities here:
+[https://www.census.gov/about/what.html]{target="_blank"}.
+
+They describe their mission as "to serve as the nation's leading
+provider of quality data about its people and economy."
+
+This page focuses on two of the largest efforts of the 
+United States Census bureau: The Decennial Census of 
+Population and Housing and the American 
+Community Survey.
+
+# Decennial Census
+
+Article 1, Section 2 of the United States Constitution requires that Members
+of the House of Representatives be apportioned among states proportionate to 
+state populations,^[The text of Article 1, Section 2 defines the population 
+for purposes of determining the number of Representatives as the number of free
+persons, excluding indigenous people who were not citizens, plus three-fifths
+of the population of enslaved persons. In 1868, the 14th Amendment to the 
+Constitution was ratified, requiring that representatives be determined
+based on the full population of each state, still excluding non-citizen 
+indigenous people. In 1924, Congress passed the Indian Citizenship 
+Act granting United States citizenship to all Native Americans born within
+the boundaries of the United States, making this special exception irrelevant.]
+and requires that a census be conducted every ten years to determine
+populations for the purposes of designating legislative districts.
+
+The Decennial Census is intended to enumerate every person living in 
+the United States, regardless of citizenship or housing status. Data are
+collected about people and households, where a household is defined as all
+people living in a single housing unit. A housing unit could be any structure,
+including a vehicle or a tent. People who do not live in housing units are
+classified as living in group quarters^[https://www.census.gov/topics/income-poverty/poverty/guidance/group-quarters.html], including:
+
+* Institutional
+    * Correctional facilities
+    * Nursing homes
+    * Hospitals
+* Non-institutional
+    * College dormitories
+    * Military barracks
+    * Group homes
+    * Missions/shelters
+
+Data collected in the decennial census include the following information
+about each household member:
+
+* Race
+* Ethnicity (Hispanic origin)
+* Sex (classified as male or female), 
+* Relationship to the householder.
+
+The "householder" can be any adult. If one person owns the 
+housing unit or pays rent for the entire household, that 
+person is classified as the householder.
+
+The tenure of the housing unit is also collected: whether 
+the home is owned without a mortgage, owned with a mortgage, rented,
+or occupied without ownership or payment of rent.
+
+Data are collected by mail-in surveys, and census workers 
+visit housing units in person to collect data from households
+with no mailing address or who did not return a survey. You can
+see a sample of the 2020 census form [here](https://www2.census.gov/programs-surveys/decennial/2020/technical-documentation/questionnaires-and-instructions/questionnaires/2020-informational-questionnaire-english_DI-Q1.pdf){target="_blank"}. 
+
+# American Community Survey
+
+Between 1970 and 2000, a random sample of respondents to the 
+Decennial Census received a "long-form census" that collected
+more data than the standard census census forms. In 2005, 
+the long-form census forms were discontinued and replaced by
+the American Community Survey.
+
+The Census Bureau has collected the American Community Survey (ACS)
+since 2005 from a randomly-selected
+sample of United States residents each year, over a twelve-month
+period. The ACS collects data on a much broader set of topics than the
+Decennial census does, including:
+
+* Residential mobility (moves within the past year)
+* Travel to work
+   * Means of transportation
+   * Travel time 
+   * Time leaving home and arriving at work
+* Income
+* Education level
+* School enrollment
+* Occupation
+* Employment status
+
+Estimated characteristics for the entire population are calculated
+based on the responses from the sample of the population that took
+the survey. Because these are estimates from a sample rather than 
+counts of the full population, there is a margin of error associated
+with them. 
+
+Data are available as one-year estimates (all responses collected 
+in a given year) and as five-year estimates (all responses collected
+over a five year period). Five-year estimates have larger sample sizes, 
+resulting in smaller margins of error.
+
+# Data tables
+
+The Census Bureau publishes data from the Decennial Census and the
+American Community Survey in data tables aggregated by geographic
+areas (the boundaries of which are available from 
+[Census TIGER files](https://c-voulgaris.github.io/VIS-2128/week1/dataset-tiger.html#geographic-areas))
+
+The unit of analysis in a data table will be a geographic area, and each
+table will include a set of variables. Variables might be the number of 
+individuals or households in each of several categories. In this case, 
+one of the variables will generally be the total across categories, 
+and other variables might be totals within subcategories. For example, 
+here is Table H003 from the 2010 Decennial Census for Congressional Districts 
+in Mississippi. Table H003 is 
+about the occopancy status of housing units. It includes three variables:
+
+* The total number of housing units (H003001)
+* The number of occupied housing units (H003002), and 
+* The number of vacant units (H003003). 
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+library(tidycensus)
+library(knitr)
+library(kableExtra)
+library(tidyverse)
+library(ggthemes)
+
+vars <- c("H003001: Total housing units" = "H003001",
+          "H003002: Total occupied housing units" = "H003002",
+          "H003003: Total vacant housing units" = "H003003")
+
+CDs_MS <- get_decennial(geography = "congressional district", state = "Mississippi", year = 2010,
+                      variables = vars, output="wide")
+
+kable(CDs_MS, format.args = list(big.mark = ","))
+  
+```
+
+Here is Table B05012 from the 2010 American Community Survey (five-year estimates) for 
+Congressional Districts in Utah. It includes an estimate and a margin of error for each of three variables:
+
+* The total population
+* The total native-born population
+* The total foreign-born population
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+vars <- c("B05012_001 (Total population)" = "B05012_001",
+          "B05012_002 (Total native-born population)" = "B05012_002",
+          "B05012_003 (Total foreign-born population)" = "B05012_003")
+
+vars <- c("B05012_001",
+          "B05012_002",
+          "B05012_003")
+
+CDs_UT <- get_acs(geography = "congressional district", state = "Utah", year = 2010,
+                      variables = vars, output="wide") |>
+  rename("B05012_001: Total population (estimate)" = "B05012_001E",
+         "B05012_001: Total population (margin of error)" = "B05012_001M",
+         "B05012_002: Total native-born population (estimate)" = "B05012_002E",
+         "B05012_002: Total native-born population (margin of error)" = "B05012_002M",
+         "B05012_003: Total foreign-born population (estimate)" = "B05012_003E",
+         "B05012_003: Total foreign-born population (margin of error)" = "B05012_003M")
+
+kable(CDs_UT, format.args = list(big.mark = ","))
+```
+
+Many data tables (for both the Decennial Census and the American Community Survey) 
+will include cross-categories. For example, Table H019 from the Decennial Census
+has data on household tenure by the presence of household children.
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+vars <- c("H019001: Total occupied housing units" = "H019001",
+          "H019002: Total owner-occupied housing units" = "H019002",
+          "H019003: Total owner-occupied housing units with children" = "H019003",
+          "H019004: Total owner-occupied housing units without children" = "H019004",
+          "H019005: Total renter-occupied housing units" = "H019005",
+          "H019006: Total renter-occupied housing units with children" = "H019006",
+          "H019007: Total renter-occupied housing units without children" = "H019007")
+
+CDs_HI <- get_decennial(geography = "congressional district", state = "HI", year = 2010,
+                      variables = vars, output="wide")
+
+kable(CDs_HI, format.args = list(big.mark = ","))
+  
+```
+
+# Microdata
+
+The Census Bureau also publishes microdata that has the individuals and 
+households rather than geographic areas as the unit of analysis.
+The most specific geographic data for which microdata are available is
+the Public Use Microdata Area (PUMA). A PUMA is a set of contiguous census
+tracts within a single state that have a combined population of
+at least 100,000 people. Each census tract in the United States
+is classified into one (and only one) PUMA.
+
+# Data access
+
+Two ways to access data from the Decennial Census or the American 
+Community Survey are through the Census's online interface
+and through their API.
+
+## Web interface
+
+You can access census data from https://data.census.gov/.
+
+From the [advanced search page](https://data.census.gov/advanced), you can use
+several categories of filters.
+
+*Geography* filters can specify the unit of analysis you want (e.g. census
+tracts or counties) as well as to filter for data within a specific geography 
+(e.g. only census tracts in Middlesex County or only counties within Texas).
+
+*Topic* filters can be useful for finding the table/variable you are 
+interested in.
+
+*Survey* filters will limit your search results to one or more specific surveys, 
+such as the Decennial Census or the American Community Survey.
+
+*Year* filters will limit your search to data from a specific year.
+
+*Code* filters are not relevant to the American Community Survey or the
+Decennial Census.
+
+## API access
+
+An application programming interface (API) allows software developers 
+to access data programmatically (i.e. through code). The R package
+`tidycensus` offers a convenient way for R users to access the Census 
+Bureau's TIGER API directly from their code. The Python package
+`cenpy` (from a different developer) is similar^[https://cenpy-devs.github.io/cenpy/].
+
+Three functions in the `tidycensus` package will be especially useful.
+You can find detailed documentation and resources for the `tidycensus`
+package here: https://walker-data.com/tidycensus/articles/basic-usage.html
+
+The `load_variables` function will allow you to search for the variables
+that interest you. It takes two required parameters: The year, and the
+dataset. 
+
+For the Decennial Census years before 2020, use `"sf1"`. 
+
+The full data from the 2020 Decennial Census haven't been released 
+yet, but limited data are available in the redistricing data. To see these
+variables, use `"pl"` as your dataset.
+
+For the American Community Survey, use `"acs1"` for one-year estimates
+or `"acs5"` for five-year estimates.
+
+If you run the line below in your console, you'll see this table describing 
+all the available variables from the 2010 Decennial Census. Note that 
+this is searchable.
+
+```{r, eval=FALSE}
+load_variables(2010, "sf1") |> View()
+```
+
+```{r, echo=FALSE, message=FALSE, fig.cap="Figure 1: Searching for census variables", out.width = '100%'}
+library(here)
+
+here("images",
+     "load_vars.png") |>
+  knitr::include_graphics()
+```
+
+Once you've identified the names of the variables you want, you can use `get_acs` to get data from the 
+American Community Survey or `get_decennial` to get data from the Decennial census.
+
+For either of these functions, you need to specify the year and the geography for which you 
+want data. For some small geographies, you'll need to specify a state and possibly a county.
+You'll also specify the list of variable names you need.
+
+By default, the result will be a table with the name of the variable in one column
+and the value in another, like this:
+
+```{r, message=FALSE}
+CDs_HI_long <- get_decennial(geography = "congressional district", 
+                        state = "Hawaii", 
+                        year = 2010,
+                        variables = c("H004001", 
+                                      "H004004"))
+
+CDs_HI_long
+```
+
+You can specify that you want each variable in its own column by setting
+`output = 'wide'`.
+
+```{r, message=FALSE}
+CDs_HI_wide <- get_decennial(geography = "congressional district", 
+                        state = "Hawaii", 
+                        year = 2010,
+                        variables = c("H004001", 
+                                      "H004004"),
+                        output = 'wide')
+
+CDs_HI_wide
+```
+
+You can also indicate that you want the data as a geospatial dataset that includes the boundaries
+the the geographic areas by setting `geometry = TRUE`.
+
+```{r, message=FALSE, results='hide'}
+counties_DE_geo <- get_decennial(geography = "county", 
+                        state = "Delaware", 
+                        year = 2010,
+                        variables = c("H004001", 
+                                      "H004004"),
+                        output = 'wide',
+                        geometry = TRUE)
+```
+
+```{r}
+ggplot(counties_DE_geo) +
+  geom_sf(aes(fill = H004001)) +
+  scale_fill_viridis_c() +
+  theme_void()
+```

@@ -17,9 +17,10 @@
 
 **Examples of complete assignments:**
 
-* [Education  in Mahattan](https://c-voulgaris.github.io/VIS-2128/week1/examples/nyc-colleges.html)
-* [Railroads and urban areas](https://c-voulgaris.github.io/VIS-2128/week1/examples/railway.pdf)
-* [Landmarks in Cambridge](https://c-voulgaris.github.io/VIS-2128/week1/examples/cambridge-landmarks.pdf)
+* [Education  in Mahattan (R - Interactive)](https://c-voulgaris.github.io/VIS-2128/week1/examples/nyc-colleges.html)
+* [Railroads and urban areas (R - Static)](https://c-voulgaris.github.io/VIS-2128/week1/examples/railway.pdf)
+* [Landmarks in Cambridge (QGIS)](https://c-voulgaris.github.io/VIS-2128/week1/examples/cambridge-landmarks.pdf)
+* [Middlesex County Roads (ArcGIS/Illustrator)](https://c-voulgaris.github.io/VIS-2128/week1/examples/middlesex-roads.pdf)
 
 ## Week 2
 

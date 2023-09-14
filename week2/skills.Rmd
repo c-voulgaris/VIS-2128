@@ -41,7 +41,7 @@ use_virtualenv(here("env_2128"))
 
 The Python skills on this page use the following Python packages.
 
-```{python}
+```{python, warning=FALSE}
 import geopandas
 import pygris
 import pandas
@@ -55,6 +55,9 @@ from cenpy import explorer
 ```
 
 # Finding census variables
+
+There are so many census variables to choose from, finding the exact ones
+you need is not at all trivial.
 
 ## R
 

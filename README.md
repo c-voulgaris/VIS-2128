@@ -25,3 +25,10 @@
 ## Week 2
 
 **Dataset of the week:** [Census surveys](https://c-voulgaris.github.io/VIS-2128/week2/dataset-census-survey.html)
+
+[Skills tutorials](https://c-voulgaris.github.io/VIS-2128/week2/skills.html)
+
+* Joining non-geospatial data table to a spatial layer
+* Calculating a new variable value
+* Clipping polygon data
+* Generating random points within a polygon

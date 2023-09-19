@@ -64,10 +64,13 @@ department.
 
 # Supporting software
 
-The Open Data Portal is hosted on the ESRI ArcGIS Online platform.
+The Open Data Portal is hosted on the [ESRI ArcGIS Online](https://www.esri.com/en-us/arcgis/products/arcgis-open-data) platform.
 
 This is a widely used platform for Open Data Portals. Alternatives include
-[DataPress](https://datapress.com/) and [OpenDataSoft](https://www.opendatasoft.com/en/). 
+
+* [Socrata](https://dev.socrata.com/)
+* [DataPress](https://datapress.com/)  
+* [OpenDataSoft](https://www.opendatasoft.com/en/). 
 
 # Accessing the data
 

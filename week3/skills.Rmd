@@ -1,0 +1,815 @@
+---
+title: "Skills: Spatial Data Calculations"
+subtitle: "Week 3"
+output: 
+  rmdformats::readthedown:
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+#knitr::knit_engines$set(python = reticulate::eng_python) 
+```
+
+This page introduces useful skills for performing calculations with
+spatial data using R, QGIS, or ARcGIS.
+
+The R skills on this page use the following R packages:
+
+```{r, message=FALSE}
+library(sf)
+library(here)
+library(tidyverse)
+library(knitr)
+library(crsuggest)
+```
+
+The examples here use the following data sets from the Open Data Portal for 
+Bristol, United Kingdom:
+
+* [Air Quality Management Areas](https://opendata.bristol.gov.uk/datasets/bcc::air-quality-management-areas-1/explore)
+* [Public bike pumps](https://opendata.bristol.gov.uk/datasets/bcc::public-bike-pumps-1/explore)
+* [Wards](https://opendata.bristol.gov.uk/datasets/bcc::wards/explore)
+   * Some Wards (a subset of wards from the Wards layer)
+
+```{r, echo=FALSE, message=FALSE, results='hide'}
+aqma <- here("week3",
+             "examples",
+             "Air_Quality_Management_Areas") |>
+  st_read()
+
+pumps <- here("week3",
+             "examples",
+             "Public_bike_pumps.geojson") |>
+  st_read()
+
+wards <- here("week3",
+             "examples",
+             "Wards") |>
+  st_read()
+
+some_wards <- wards |>
+  filter(NAME == "Ashley" |
+           NAME == "Cotham" |
+           NAME == "Eastville" |
+           NAME == "Southville" |
+           NAME == "Lockleaze")
+```
+
+
+# Checking a layer's coordinate reference system
+
+If you'll be doing anything that involves measuring distances or 
+areas, you should have your data in a projected coordinate system
+(coordinates in feet or meters rather than degrees longitude and
+latitude). So it's worth checking what coordinate reference system
+your data are in.
+
+## R
+
+In R, you can check the coordinate reference system for a layer
+using `st_crs()`.
+
+Here, I can see that my layer of ward polygons is in the British National
+Grid projection, which is a projected coordinate system.
+
+```{r}
+st_crs(wards)
+```
+
+My bike pump data is in WGS 84, which is a geographic coordinate 
+system.
+
+```{r}
+st_crs(pumps)
+```
+
+## QGIS
+
+In QGIS, there is a coordinate reference system associated with your
+map/project that controls how the spatial layers are displayed, and there
+is is a coordinate reference system associated with the each layer that
+refers to how coordinates are stored in the file.
+
+The CRS for the map/project is shown on a button on the bottom right
+corner of your map window, and you can change the map's CRS by clicking
+that button.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+library(here)
+
+here("week3",
+     "examples",
+     "gifs",
+     "qgis-proj-crs.gif") |>
+  knitr::include_graphics()
+```
+
+When you add the first layer to an empty map window, the map's CRS will
+change to match the projection of that layer. You can check the layer's 
+CRS from the General Information tab of the layer properties window.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+library(here)
+
+here("week3",
+     "examples",
+     "gifs",
+     "qgis-check-crs.gif") |>
+  knitr::include_graphics()
+```
+
+## ArcGIS
+
+In ArcGIS, there is a coordinate reference system associated with your
+map/project that controls how the spatial layers are displayed, and there
+is is a coordinate reference system associated with the each layer that
+refers to how coordinates are stored in the file. 
+
+You can check the map's CRS from the Map Properties windo under
+"Coordinate Systems."
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week3",
+     "examples",
+     "gifs",
+     "arcgis-check-map-proj.gif") |>
+  knitr::include_graphics()
+```
+
+You can check a layer's coordinate reference system from the layer
+properties window, under "Source."
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week3",
+     "examples",
+     "gifs",
+     "arcgis-check-layer-crs.gif") |>
+  knitr::include_graphics()
+```
+
+# Changing a layer's coordinate reference system
+
+Two reasons to change a layer's coordinate reference system are:
+
+1. Your data are in a geographic coordinate system and you want to 
+do distance and area calculations that require a projected coordinate
+system.
+2. You need have multiple layers, each in a different coordinate 
+system, and you need to do an operation that requires them to
+be in the same coordinate system.
+
+Changing the layer's coordinate system edits the layer data by changing
+the value of any coordinates. It would not necessarily change the 
+way the data are displayed on a map.
+
+## R
+
+The `st_transform()` function can transform a dataset to a new
+CRS.
+
+I can use the `crs_suggest()` function to suggest a good projected
+coordinate reference system for my bike pump data.
+
+```{r}
+pumps <- pumps |>
+  st_transform(suggest_top_crs(pumps))
+```
+
+The package has suggested UTM Zone 30N. I can confirm that this is the new 
+crs for the layer.
+
+```{r}
+st_crs(pumps)
+```
+
+I might prefer to set the CRS to a coordinate system that will be 
+consistent with one of the other layers I'm using. I can use 
+`st_crs()` for this as well.
+
+```{r}
+pumps <- pumps |>
+  st_transform(st_crs(wards))
+```
+
+And now my pumps data is using the British National Grid, just like
+my wards data.
+
+```{r}
+st_crs(pumps)
+```
+
+## QGIS
+
+In QGIS, you should start by reprojecting your data to the 
+CRS you want to tranform it to. Again, this does not change
+your underlying data, just the way it's displayed. 
+
+Click on the button on the bottom right corner of your map window that 
+shows the current projection, and select a new projection. You can
+select from a list of recently-used projections, or from a longer
+list of pre-defined projections. You can use the search bar to search
+for a projection by name.
+
+In this example, I'm reprojecting from the British National Grid to 
+UTM Zone 30N. If this is a reprojection you haven't done before, 
+you might see a dialog asking you to select a transformation method.
+In this case, you can just accept the default.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week3",
+     "examples",
+     "gifs",
+     "qgis-reproject.gif") |>
+  knitr::include_graphics()
+```
+
+Once you've reprojected the data, you can export a new version 
+of the file that uses the new CRS. Right-click on the layer in your layers
+pane, select "Export" and "Save Features As..." Select the file type and the CRS of the new layer. Save the transformed layer in a place where you'll
+find it later (with the rest of your project files). When you add the 
+transformed layer to your map, it will look exactly like the one you
+started with (probably in a different color) because both layers
+are being *displayed* in the map's CRS, but the coordinate data for each
+version is saved in a different coordinate reference system.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week3",
+     "examples",
+     "gifs",
+     "qgis-crs-transfomr.gif") |>
+  knitr::include_graphics()
+```
+
+## ArcGIS
+
+In ArcGIS, you should start by reprojecting your data to the 
+CRS you want to tranform it to. Again, this does not change
+your underlying data, just the way it's displayed. 
+
+You can change the map's coordinate system from the Map Properties window,
+under "Coordinate System."
+
+In this example, I'm reprojecting from the British National Grid to 
+UTM Zone 30N. 
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week3",
+     "examples",
+     "gifs",
+     "arcgis-reproject.gif") |>
+  knitr::include_graphics()
+```
+
+Use the Project geoprocessing tool to create a new version of the of the
+layer in the coordinate reference system that matches the current map
+projection.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week3",
+     "examples",
+     "gifs",
+     "arcgis-transform.gif") |>
+  knitr::include_graphics()
+```
+
+# Splitting polygons based on overlaps with another polygon layer
+
+You might be concerned with the degree to which one (set of) polygon
+overlaps with another (set of) polygon(s). You can start by splitting
+a polygon into its overlapping and non-overlapping portions.
+
+You've already worked with these methods a little if you've tried 
+[clipping the water](https://c-voulgaris.github.io/VIS-2128/week2/skills.html#clipping-an-area-from-a-polygon) from a geographic area. 
+
+## R
+
+`st_intersection()` returns the part of a polygon that overlaps with
+another layer, and `st_difference()` returns the part that doesn't
+overlap.
+
+Here is a plot showing the boundaries of the selected wards and the
+boundary of the air quality management area.
+
+```{r}
+ggplot() +
+  geom_sf(data = some_wards, fill = "lightblue", color = "blue") +
+  geom_sf(data = aqma, fill = NA, color = "red") +
+  theme_void()
+```
+
+I want to create a set of polygons representing the parts of these wards
+that are within the air quality management area and another set that 
+represents the parts of our selected wards that are outside the air quality management area.
+
+```{r, warning=FALSE}
+some_wards_in <- some_wards |>
+  st_intersection(aqma)
+
+some_wards_out <- some_wards |>
+  st_difference(aqma)
+```
+
+And we can confirm that these polygons represent the areas inside 
+and outside the AQMA boundary.
+
+```{r}
+ggplot() +
+  geom_sf(data = some_wards_in, fill = "pink", color = "gray") +
+  geom_sf(data = some_wards_out, fill = "powderblue", color = "gray") +
+  geom_sf(data = aqma, fill = NA, color = "red") +
+  theme_void()
+```
+
+## QGIS
+
+Hover over the "Geoprocessing tools" item on the "Vector" menu. To create
+a set of polygons representing the parts of a layer that are inside
+the boundaries of another layer, use the "Intersection" tool.
+
+The input layer is the layer you want to clip. The overlay layer is the one
+defining the areas you want to keep.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week3",
+     "examples",
+     "gifs",
+     "qgis-intersection.gif") |>
+  knitr::include_graphics()
+```
+
+To create
+a set of polygons representing the parts of a layer that are outside
+the boundaries of another layer, use the "Difference" tool.
+
+The input layer is the layer you want to clip. The overlay layer is the one
+defining the areas you want to remove.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week3",
+     "examples",
+     "gifs",
+     "qgis-difference.gif") |>
+  knitr::include_graphics()
+```
+
+## ArcGIS
+
+The Clip tool in ArcGIS can modify a layer to clip away everything
+within another layer, to everything outside another layer, or to keep all
+the polygons in a layer, but break them into the parts that are inside
+and outside another layer.
+
+Before you modify a layer, you may want to save a copy of it.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week3",
+     "examples",
+     "gifs",
+     "arcgis-save-copy.gif") |>
+  knitr::include_graphics()
+```
+
+Here is how you would use the Clip tool to keep everything outside another layer.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week3",
+     "examples",
+     "gifs",
+     "arcgis-difference.gif") |>
+  knitr::include_graphics()
+```
+
+Here is how you would keep everything inside another layer.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week3",
+     "examples",
+     "gifs",
+     "arcgis-intersection.gif") |>
+  knitr::include_graphics()
+```
+
+And here is how you split polygons into the components inside and outside
+another layer, and keep all portions.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week3",
+     "examples",
+     "gifs",
+     "arcgis-split.gif") |>
+  knitr::include_graphics()
+```
+
+# Combining layers
+
+You might have a set of features in two different layers that
+you want to combine into a single layer.
+
+## R
+
+Continuing from our example where I creates a polygon layer
+representing the parts of selected wards within the AQMA and another
+polygon layer representing the areas outside the AQMA:
+
+I can combine these two polygon layers into 
+a single layer. Before I combine them, I'll create a variable to indicate
+which is which.
+
+```{r}
+some_wards_in <- some_wards_in |>
+  mutate(in_aqma = TRUE)
+
+some_wards_out <- some_wards_out |>
+  mutate(in_aqma = FALSE)
+```
+
+And then I'll use `rbind()` to combine the two tables. This requires
+that the two data sets have the exact same set of columns (with the
+same names, in the same order).
+
+```{r}
+some_wards_in_out <- rbind(some_wards_in, some_wards_out)
+```
+
+And now I can plot the resulting layer on a map.
+
+```{r}
+ggplot() +
+  geom_sf(data=some_wards_in_out, color="white",
+          aes(fill=in_aqma)) +
+  scale_fill_brewer(type="qual",
+                    name = "Relation to AQMA",
+                    labels = c("Outside",
+                               "Inside")) +
+    geom_sf(data=aqma, fill=NA, color="black") +
+  theme_void()
+```
+
+## QGIS
+
+Continuing from our example where I creates a polygon layer
+representing the parts of selected wards within the AQMA and another
+polygon layer representing the areas outside the AQMA:
+
+I can combine these two polygon layers into 
+a single layer. Before I combine them, I'll create a variable to indicate
+which is which.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week3",
+     "examples",
+     "gifs",
+     "qgis-add-in-out.gif") |>
+  knitr::include_graphics()
+```
+
+To merge two layers into a single layer, hover over "Data management tools"
+from the "Vector" menu, and select "Merge Vector Layers...". Save the 
+resulting file with the rest of your project files.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week3",
+     "examples",
+     "gifs",
+     "qgis-merge layers.gif") |>
+  knitr::include_graphics()
+```
+
+## ArcGIS
+
+You may want to start by adding a variable to indicate which features come
+from which layer.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week3",
+     "examples",
+     "gifs",
+     "arcgis-in_out.gif") |>
+  knitr::include_graphics()
+```
+
+And then you can merge the two layers. You'll need to indicate which 
+variables you want the new, combined layer to include, and where to find
+those variable values in each of the layers you're combining.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week3",
+     "examples",
+     "gifs",
+     "arcgis-merge.gif") |>
+  knitr::include_graphics()
+```
+
+# Finding the area of a polygon
+
+Sometimes it's helpful to know the area of a polygon.
+
+## R
+
+`st_area` will calculate the area of a polygon, or each polygon 
+within a layer of polygons. 
+
+```{r}
+some_wards_in_out <- some_wards_in_out |>
+  mutate(area = st_area(some_wards_in_out)) |>
+  select(NAME, area, in_aqma)
+
+some_wards_in_out |>
+  kable()
+```
+
+## QGIS
+
+In QGIS, you can calculate the area from the field 
+calculator.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week3",
+     "examples",
+     "gifs",
+     "qgis-area-calc.gif") |>
+  knitr::include_graphics()
+```
+
+## ArcGIS
+
+In ArcGIS, you can right-click any heading on the attribute 
+table and select "Calculate Geometry." 
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week3",
+     "examples",
+     "gifs",
+     "arcgis-area-calc.gif") |>
+  knitr::include_graphics()
+```
+
+# Summarizing values within categories
+
+You might have features classified into multiple categories and you
+want to calculate the total or average value of a variable within each 
+category.
+
+## R
+
+The `group_by()` function will allow you to make calculations within 
+categories
+
+```{r}
+some_wards_in_out <- some_wards_in_out |>
+  group_by(in_aqma) |>
+  mutate(total_area = sum(area))
+
+some_wards_in_out |>
+  kable()
+```
+
+## QGIS 
+
+The `sum()` function in QGIS lets you specify a `group_by` parameter.
+Here is how I would calculate the total area of each ward that 
+each polygon in this layer belongs to.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week3",
+     "examples",
+     "gifs",
+     "qgis-group-sums.gif") |>
+  knitr::include_graphics()
+```
+
+## ArcGIS
+
+In ArcGIS, you can use the Summarize button on the Table tab to create a
+table that calculates summary statistics for a variable within categories
+defined by another variable.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week3",
+     "examples",
+     "gifs",
+     "arcgis-sum-by-group.gif") |>
+  knitr::include_graphics()
+```
+
+# Creating a buffer
+
+Some questions can be informed by the creation of a polygon representing
+the area within a specified distance of a feature.
+
+## R 
+
+`st_buffer()` will create a buffer polygon around features in a layer.
+The distance you specify should be in the same units as the coordinate
+reference system.
+
+Here is how you would create a set of circles defining a 20-meter radius
+around each public bike pump.
+
+```{r}
+pump_buffer <- st_buffer(pumps, dist = 1000)
+```
+
+And here's how that looks on a map.
+
+```{r}
+ggplot() +
+  geom_sf(data = pump_buffer, fill = "pink", color = "red") +
+  geom_sf(data = pumps, color = "blue") +
+  theme_void()
+```
+
+## QGIS
+
+In QGIS you can create a buffer around a layer using the "Buffer"
+geoprocessing tool. You can create a separate buffer around each 
+feature by leaving the "Dissolve result" box unchecked.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week3",
+     "examples",
+     "gifs",
+     "qgis-point-buff-sep.gif") |>
+  knitr::include_graphics()
+```
+
+Or you can check the "Dissolve result" box to create a single feature representing
+the area within a specified distance of *any* feature.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week3",
+     "examples",
+     "gifs",
+     "qgis-point-buff-diss.gif") |>
+  knitr::include_graphics()
+```
+
+## ArcGIS
+
+The BUffer geoprocessing tool in ArcGIS will create a buffer around
+features in a layer. If you set "Dissolve Type" to "No Dissolve", you'll
+get one buffer for each individual feature.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week3",
+     "examples",
+     "gifs",
+     "arcgis-buffer-sep.gif") |>
+  knitr::include_graphics()
+```
+
+If you set "Dissolve Type" to "Dissolve all output features into a single feature", you'll
+get one buffer for the entire area within a set distance of any feature in 
+the input layer.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week3",
+     "examples",
+     "gifs",
+     "arcgis-buffer-diss.gif") |>
+  knitr::include_graphics()
+```
+
+# Combining features
+
+You might have a set of features that you want to combine into
+a single feature. This is called a *union*. A union will erase the
+boundaries between overlapping or adjacent polygons, and it will create
+a multipolygon to include non-adjacent polygons.
+
+## R
+
+Here's the set of buffers I generated around bike pumps in Bristol.
+
+```{r}
+ggplot() +
+  geom_sf(data = pump_buffer, fill = "pink", color = "red") +
+  theme_void()
+```
+
+
+I can use `st_union()` to combine them into a single multipolygon.
+
+```{r}
+one_pump_buffer = st_union(pump_buffer)
+```
+
+And here's the result.
+
+```{r}
+ggplot() +
+  geom_sf(data = one_pump_buffer, fill = "pink", color = "red") +
+  theme_void()
+```
+
+## QGIS
+
+The "Union" geoprocessing tool in QGIS will combine polygons into a 
+single, multipolygon, but it will preserve the boundaries
+between them and it will keep overlapping polygons as overlapping parts
+of the multipolygon.
+
+If you want to dissolve the boundaries between polygons, you'll
+need the "Dissolve" tool.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week3",
+     "examples",
+     "gifs",
+     "qgis-dissolve.gif") |>
+  knitr::include_graphics()
+```
+
+## ArcGIS
+
+In ArcGIS, you can use the "Dissolve" geoprocessing tool to combine
+all features in a layer, dissolving boundaries between adjacent and 
+overlapping polygons.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week3",
+     "examples",
+     "gifs",
+     "arcgis-dissolve.gif") |>
+  knitr::include_graphics()
+```
+
+# Calculating the distance to the nearest feature
+
+Calculating distances between things is the basis for most spatial data 
+analysis.
+
+## R
+
+`st_distance()` will return the distance each of the features in 
+another layer. Depending on what you're trying to do, it may be best
+to find the distance to a layer that only includes a single feature. 
+For a polygon (or multipolygon),
+the distance will the distance to the closest part of the polygon 
+(zero if the polygon contains the feature you're calculating the distance
+from).
+
+```{r}
+pumps <- pumps |>
+  mutate(distance = (st_distance(pumps, aqma))) |>
+  select(distance)
+
+head(pumps) |>
+  kable()
+```
+
+```{r, warning=FALSE}
+ggplot() +
+  geom_sf(data = aqma) +
+  geom_sf(data = pumps,
+          aes(color = as.numeric(distance))) +
+  scale_color_viridis_c(trans = "log",
+                        name = "Distance from\nAQMA (meters)",
+                        breaks = breaks <- 100*2^seq(0, 20, by=1),
+                        labels = prettyNum(breaks, big.mark = " ")) +
+  theme_void()
+```
+
+## QGIS
+
+The NNjoin plugin for QGIS makes it easy to calculate the distance from 
+features in one layer to the nearest features in another layer. Before 
+you can use it, you need to install it.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week3",
+     "examples",
+     "gifs",
+     "qgis-install-nnjoin.gif") |>
+  knitr::include_graphics()
+```
+
+Once you've installed the plugin, a yellow NNjoin button will appear on your
+screen. Click this button and a dialog will appear where you can specify
+an input layer, a join layer, and an output layer. The output layer
+will be a copy of the input layer that will include column from the join
+layer, including a column indicating the distance to the nearest feature.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week3",
+     "examples",
+     "gifs",
+     "qgis-calc-dist.gif") |>
+  knitr::include_graphics()
+```
+
+## ArcGIS
+
+The Near tool in the Analysis Toolbox will calculate the distance to the
+nearest feature in another layer. It will add a field to the attribute 
+table called "NEAR_DIST" (by default - you can change this) that will indicate
+the distance to the nearest feature in the layer you've specified.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week3",
+     "examples",
+     "gifs",
+     "arcgis-dist-calc.gif") |>
+  knitr::include_graphics()
+```

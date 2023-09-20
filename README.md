@@ -30,9 +30,16 @@
 
 * Joining non-geospatial data table to a spatial layer
 * Calculating a new variable value
-* Clipping polygon data
+* Clipping polygons
 * Generating random points within a polygon
 
 ## Week 3
 
 **Dataset of the week:** [Cape Town Open Data Portal](https://c-voulgaris.github.io/VIS-2128/week3/dataset-odp.html)
+
+[Skills tutorials](https://c-voulgaris.github.io/VIS-2128/week3/skills.html)
+
+* Calculating areas
+* Calculating distances
+* Transforming coordinate reference systems
+* Merging layers and features

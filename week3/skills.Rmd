@@ -554,7 +554,11 @@ category.
 ## R
 
 The `group_by()` function will allow you to make calculations within 
-categories
+categories. Available functions include:
+
+* `sum()`: The sum of values within each category
+* `mean()`: The average of values within each category
+* `n()`: The number of rows/features in each category.
 
 ```{r}
 some_wards_in_out <- some_wards_in_out |>
@@ -567,7 +571,13 @@ some_wards_in_out |>
 
 ## QGIS 
 
-The `sum()` function in QGIS lets you specify a `group_by` parameter.
+The following functions in QGIS lets you specify a `group_by` 
+parameter:
+
+* `sum()`: The sum of values within each category
+* `mean()`: The average of values within each category
+* `count()`: The number of rows/features in each category.
+
 Here is how I would calculate the total area of each ward that 
 each polygon in this layer belongs to.
 
@@ -584,6 +594,12 @@ here("week3",
 In ArcGIS, you can use the Summarize button on the Table tab to create a
 table that calculates summary statistics for a variable within categories
 defined by another variable.
+
+You can specify among several statistics types, including:
+
+* Sum: The sum of values within each category
+* Mean: The average of values within each category
+* Count: The number of rows/features in each category.
 
 ```{r, echo=FALSE, message=FALSE, out.width = '100%'}
 here("week3",

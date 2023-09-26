@@ -43,3 +43,7 @@
 * Calculating distances
 * Transforming coordinate reference systems
 * Merging layers and features
+
+## Week 4
+
+**Dataset of the week:** [OpenStreetMap (Philippines)](https://c-voulgaris.github.io/VIS-2128/week4/dataset-osm.html)

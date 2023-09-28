@@ -47,3 +47,9 @@
 ## Week 4
 
 **Dataset of the week:** [OpenStreetMap (Philippines)](https://c-voulgaris.github.io/VIS-2128/week4/dataset-osm.html)
+
+[Skills tutorials](https://c-voulgaris.github.io/VIS-2128/week4/skills.html)
+
+* Getting OpenStreetMap data
+* Loading a routeable street network
+* Generating a walkshed

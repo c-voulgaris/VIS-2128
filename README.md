@@ -53,3 +53,14 @@
 * Getting OpenStreetMap data
 * Loading a routeable street network
 * Generating a walkshed
+
+## Week 5
+
+**Dataset of the week:** [Field data](https://c-voulgaris.github.io/VIS-2128/week5/dataset-field.html)
+
+[Skills tutorials](https://c-voulgaris.github.io/VIS-2128/week5/skills.html)
+
+* Recording a GPX trace
+* Extracting locations from geotagged photos
+* Importing a GPX trace
+* Importing points from a csv file

@@ -1,0 +1,98 @@
+---
+title: "Field data (Roxbury) and positionality"
+subtitle: "Dataset of the Week (Week 5)"
+output: 
+  rmdformats::readthedown:
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+
+library(here)
+library(tidyverse)
+
+```
+
+# Background
+
+This week, we'll be focusing on data that you've collected yourself.
+As with all the data sources we've been discussing, data you collect
+will reflect the biases and goals of the person or institution (you, in
+this case) collecting, curating, and presenting the data. It 
+is worth taking a moment to reflect on how your own identity will 
+influence the data you will be collecting.
+
+# Your identity
+
+Dimensions of your identity that might influence what you notice and choose
+to record about a place might include:
+
+* Race
+* Class
+* Educational attainment
+* Income
+* (Dis)ability
+* Gender
+* Citizenship
+* Nationality
+* Religion
+* Sexual orientation
+* Age
+* Family relationships and caregiver status
+
+How might you describe your own identity along these or other dimensions?
+How might these identities influence your approach to data collection 
+for this week's assignment? 
+
+Some possible questions with answers
+that might vary depending on your own identity include:
+
+* What signals to you that a place or situation is safe or unsafe?
+* What features of a place are noteworthy and what features are so 
+normal that they might escape your notice?
+* What data-gathering behaviors might draw unwanted attention?
+* What sort of attention would be unwanted?
+* What does a normal place look like?
+* What does an ideal place look like?
+* At what point are two things similar enough to be classified as the same thing?
+
+# Your subject community
+
+Any of the above dimensions of your identity might to contribute to your
+*insider/outsider* status, which might be a separate, but related dimension: 
+Do you feel at home in the place where you are gathering data? Do you consider this 
+community to be your own community? Would members of this community
+see you as an insider or as an outsider?
+
+How do you view your own position in relation to the community you are studying?
+
+* Are you you collecting data about a community you see yourself as
+a part of?
+* In what ways do you have lower or higher status than the members of the
+community you are studying?
+* In what ways do members of the community you are studying have 
+more or less power than yourself?
+* In what ways do members of the community you are studying have more 
+or less relevant expertise than you do?
+
+# Your audience
+
+You will generally collect data that you expect to share with others.
+Your beliefs about what your audience will be interested in and what
+they will need to know might be based in part of your perceptions
+of *their* identities, and your own power, status, and expertise relative
+to your own.
+
+* Are you you collecting data for people you see as being like you, 
+or for people you see as being different from you?
+* Do you view your audience as having higher or lower status than 
+yourself?
+* Do you view your audience as having more or less power than yourself?
+* Do you view your audience as having more or less relevant expertise
+than you do?
+
+

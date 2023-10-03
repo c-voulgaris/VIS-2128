@@ -1,0 +1,217 @@
+---
+title: "Skills: Collecting and importing field data"
+subtitle: "Week 5"
+output: 
+  rmdformats::readthedown:
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+#knitr::knit_engines$set(python = reticulate::eng_python) 
+```
+
+```{r, echo=FALSE, message=FALSE}
+library(here)
+```
+
+
+This page demonstrates methods for collecting GPS data in the field and importing
+it to a GIS software of your choice.
+
+# Collecting GPS traces
+
+There are many different smart phone applications for both Andorid
+and iOS devices that will allow you to collect GPS traces and export
+them as GPX files. These include:
+
+* Strava ([iOS](https://apps.apple.com/us/app/strava-run-bike-hike/id426826309) and [Android](https://play.google.com/store/apps/details?id=com.strava&hl=en_US&gl=US)): A social app for sharing data on workouts, including
+running, cycling, hiking, canoeing, skiing, etc. You can record and share the
+route you took on a "workout" and export your route as a GPX file.
+* OsmAnd ([iOS](https://apps.apple.com/us/app/osmand-maps-travel-navigate/id934850257) and [Android](https://play.google.com/store/apps/details?id=net.osmand&hl=en_US&gl=US)): A navigation app build on OpenStreetMap that also
+will record GPX traces if you enable the "Trip recording" plugin.
+* GPX Tracker ([iOS](https://apps.apple.com/us/app/open-gpx-tracker/id984503772)): A specialized app that just records GPX traces.
+
+The demonstration below uses the OsmAnd app for iOS.
+
+When you first install and open the app, you'll see a screen like this:
+
+```{r, echo=FALSE, message=FALSE, out.width = '30%'}
+here("week5",
+     "screenshots",
+     "IMG_0489.PNG") |>
+  knitr::include_graphics()
+```
+
+
+```{r, echo=FALSE, message=FALSE, out.width = '30%'}
+here("week5",
+     "screenshots",
+     "IMG_0490.PNG") |>
+  knitr::include_graphics()
+```
+
+
+The first screen will ask you to download a map that corresponds with your 
+current location. This is to allow the app to work offline (without an 
+internet connection). You can skip downloading the map and still record 
+GPS locations, but the app won't show you a basemap in the background.
+
+Once you've downloaded a basemap, the download button becomes a "Go to the map"
+button. Tap that button.
+
+```{r, echo=FALSE, message=FALSE, out.width = '30%'}
+here("week5",
+     "screenshots",
+     "IMG_0491.PNG") |>
+  knitr::include_graphics()
+```
+
+You'll see a map of your current surroundings. On the botton right corner of the map, there
+will be a little crosshair icon. If you tap that, you'll get a message asking you to give
+the app permission to use your location. 
+
+```{r, echo=FALSE, message=FALSE, out.width = '30%'}
+here("week5",
+     "screenshots",
+     "initial-map.jpeg") |>
+  knitr::include_graphics()
+```
+
+Tracking your location is the whole point of this exercise. Choose "Allow While Using App" if you
+intend to keep the app open the whole time you're collecting data. Otherwise, you want to set it
+to track your location all the time.
+
+```{r, echo=FALSE, message=FALSE, out.width = '30%'}
+here("week5",
+     "screenshots",
+     "IMG_0503.PNG") |>
+  knitr::include_graphics()
+```
+
+Tap the little hamburger button on the bottom left corner of the map to open up the side menu. 
+
+```{r, echo=FALSE, message=FALSE, out.width = '30%'}
+here("week5",
+     "screenshots",
+     "IMG_0492.PNG") |>
+  knitr::include_graphics()
+```
+
+Tap "My places". Select the "Tracks" icon on the bottom right and tap the banner that says,
+"Please activate Track recording addon to record and save your tracks."
+
+```{r, echo=FALSE, message=FALSE, out.width = '30%'}
+here("week5",
+     "screenshots",
+     "IMG_0494.PNG") |>
+  knitr::include_graphics()
+```
+
+
+You'll see a list of plugins with white checkboxes next to them. 
+
+```{r, echo=FALSE, message=FALSE, out.width = '30%'}
+here("week5",
+     "screenshots",
+     "unchecked-trip-rec.jpeg") |>
+  knitr::include_graphics()
+```
+
+Tap the box by "Trip Recording." It will show you a message saying you've added the plugin. Click OK.
+
+```{r, echo=FALSE, message=FALSE, out.width = '30%'}
+here("week5",
+     "screenshots",
+     "IMG_0495.PNG") |>
+  knitr::include_graphics()
+```
+
+Now the checkbox will be highlighted in orange. Tap on "< My Tracks". 
+
+```{r, echo=FALSE, message=FALSE, out.width = '30%'}
+here("week5",
+     "screenshots",
+     "IMG_0496.PNG") |>
+  knitr::include_graphics()
+```
+
+You'll see a banner that says "Currently recording track" with a gray save icon and
+a red dot. Tap the red dot. 
+
+```{r, echo=FALSE, message=FALSE, out.width = '30%'}
+here("week5",
+     "screenshots",
+     "IMG_0498.PNG") |>
+  knitr::include_graphics()
+```
+
+A dialog will pop up where, if you want, you can 
+adjust the recording interval. By default, it will record your location every five 
+seconds. Click OK.
+
+```{r, echo=FALSE, message=FALSE, out.width = '30%'}
+here("week5",
+     "screenshots",
+     "IMG_0497.PNG") |>
+  knitr::include_graphics()
+```
+
+Now you should see a black square instead of a red circle. The app is currently recording your
+location. Start walking along the path you want to record. When you have finished your path, 
+tap the black square to stop recording.
+
+```{r, echo=FALSE, message=FALSE, out.width = '30%'}
+here("week5",
+     "screenshots",
+     "IMG_0505.PNG") |>
+  knitr::include_graphics()
+```
+
+Tap the "Rec" folder, and you'll see your track listed with a file name
+indicating the current date and time.
+
+```{r, echo=FALSE, message=FALSE, out.width = '30%'}
+here("week5",
+     "screenshots",
+     "IMG_0499.PNG") |>
+  knitr::include_graphics()
+```
+
+Tap the name of your track and it will open in a map.
+
+```{r, echo=FALSE, message=FALSE, out.width = '30%'}
+here("week5",
+     "screenshots",
+     "IMG_0500.PNG") |>
+  knitr::include_graphics()
+```
+
+Tap the share icon at the bottom of the screen and email the GPX file to yourself.
+
+```{r, echo=FALSE, message=FALSE, out.width = '30%'}
+here("week5",
+     "screenshots",
+     "IMG_0501.PNG") |>
+  knitr::include_graphics()
+```
+
+# Taking geotagged photos
+
+For the most part, your phone is collecting the latitude/longitude
+coordinates of each photo you take by default, unless you've
+explicitly turned off location access for your phone's camera. 
+
+# Importing GPS traces
+
+Coming soon...
+
+# Extracting locations from geotagged photos
+
+Coming soon...
+
+# Importing csv locatations
+
+Coming soon...
+
+

@@ -11,13 +11,20 @@ knitr::opts_chunk$set(echo = TRUE)
 #knitr::knit_engines$set(python = reticulate::eng_python) 
 ```
 
-```{r, echo=FALSE, message=FALSE}
-library(here)
-```
-
 
 This page demonstrates methods for collecting GPS data in the field and importing
 it to a GIS software of your choice.
+
+The R methods on this page use the following packages:
+
+
+```{r, message=FALSE}
+library(here)
+library(sf)
+library(tidyverse)
+library(ggspatial)
+library(exifr)
+```
 
 # Collecting GPS traces
 
@@ -32,7 +39,8 @@ route you took on a "workout" and export your route as a GPX file.
 will record GPX traces if you enable the "Trip recording" plugin.
 * GPX Tracker ([iOS](https://apps.apple.com/us/app/open-gpx-tracker/id984503772)): A specialized app that just records GPX traces.
 
-The demonstration below uses the OsmAnd app for iOS.
+The demonstration below uses the OsmAnd app for iOS (with some examples from an Android
+device when things look different).
 
 When you first install and open the app, you'll see a screen like this:
 
@@ -43,6 +51,10 @@ here("week5",
   knitr::include_graphics()
 ```
 
+The first screen will ask you to download a map that corresponds with your 
+current location. This is to allow the app to work offline (without an 
+internet connection). You can skip downloading the map and still record 
+GPS locations, but the app won't show you a basemap in the background.
 
 ```{r, echo=FALSE, message=FALSE, out.width = '30%'}
 here("week5",
@@ -51,11 +63,25 @@ here("week5",
   knitr::include_graphics()
 ```
 
+If your phone asks apps not to track your location by default, the app might guess the wrong
+map to download for your current location. In this case, you can tap "Skip Download" on the
+bottom left corner of the screen.
 
-The first screen will ask you to download a map that corresponds with your 
-current location. This is to allow the app to work offline (without an 
-internet connection). You can skip downloading the map and still record 
-GPS locations, but the app won't show you a basemap in the background.
+```{r, echo=FALSE, message=FALSE, out.width = '30%'}
+here("week5",
+     "screenshots",
+     "image000000-ct.png") |>
+  knitr::include_graphics()
+```
+
+Then you can search for the map you want to download.
+
+```{r, echo=FALSE, message=FALSE, out.width = '30%'}
+here("week5",
+     "screenshots",
+     "image000000 (1).png") |>
+  knitr::include_graphics()
+```
 
 Once you've downloaded a basemap, the download button becomes a "Go to the map"
 button. Tap that button.
@@ -109,7 +135,10 @@ here("week5",
 ```
 
 
-You'll see a list of plugins with white checkboxes next to them. 
+On an Android phone, you may need to add this plugin from the Plugin manager
+(find it towards the bottom of the side menu, right before settings).
+
+On an iPhone, you'll see a list of plugins with white checkboxes next to them. 
 
 ```{r, echo=FALSE, message=FALSE, out.width = '30%'}
 here("week5",
@@ -118,7 +147,16 @@ here("week5",
   knitr::include_graphics()
 ```
 
-Tap the box by "Trip Recording." It will show you a message saying you've added the plugin. Click OK.
+On an Android, it will look like this:
+
+```{r, echo=FALSE, message=FALSE, out.width = '30%'}
+here("week5",
+     "screenshots",
+     "image000000 (2).png") |>
+  knitr::include_graphics()
+```
+
+Tap the box or icon by "Trip Recording." It will show you a message saying you've added the plugin. Click OK.
 
 ```{r, echo=FALSE, message=FALSE, out.width = '30%'}
 here("week5",
@@ -127,7 +165,7 @@ here("week5",
   knitr::include_graphics()
 ```
 
-Now the checkbox will be highlighted in orange. Tap on "< My Tracks". 
+Now the checkbox or icon will be highlighted in orange. Tap on "< My Tracks". 
 
 ```{r, echo=FALSE, message=FALSE, out.width = '30%'}
 here("week5",
@@ -146,9 +184,25 @@ here("week5",
   knitr::include_graphics()
 ```
 
+
+On an Android device, the "Start Recording" button is somewhat more 
+clearly labeled.
+
+
+```{r, echo=FALSE, message=FALSE, out.width = '30%'}
+here("week5",
+     "screenshots",
+     "image000000[3].PNG") |>
+  knitr::include_graphics()
+```
+
+
 A dialog will pop up where, if you want, you can 
 adjust the recording interval. By default, it will record your location every five 
-seconds. Click OK.
+seconds. Setting it to a shorter interval (e.g. every one second) will improve the
+precision of your GPS trace.
+
+Click OK.
 
 ```{r, echo=FALSE, message=FALSE, out.width = '30%'}
 here("week5",
@@ -159,7 +213,7 @@ here("week5",
 
 Now you should see a black square instead of a red circle. The app is currently recording your
 location. Start walking along the path you want to record. When you have finished your path, 
-tap the black square to stop recording.
+tap the black square to stop recording. Then tap the save icon.
 
 ```{r, echo=FALSE, message=FALSE, out.width = '30%'}
 here("week5",
@@ -167,6 +221,16 @@ here("week5",
      "IMG_0505.PNG") |>
   knitr::include_graphics()
 ```
+
+On an Android device the start, stop, and save icons are more clearly labeled.
+
+```{r, echo=FALSE, message=FALSE, out.width = '30%'}
+here("week5",
+     "screenshots",
+     "image000000.PNG") |>
+  knitr::include_graphics()
+```
+
 
 Tap the "Rec" folder, and you'll see your track listed with a file name
 indicating the current date and time.
@@ -196,6 +260,25 @@ here("week5",
   knitr::include_graphics()
 ```
 
+To share the file from an Android device, you'll need to click the "Options"
+button on the bottom left corner of your screen.
+
+```{r, echo=FALSE, message=FALSE, out.width = '30%'}
+here("week5",
+     "screenshots",
+     "image000000[1].png") |>
+  knitr::include_graphics()
+```
+
+Then click the Share item on the side menu.
+
+```{r, echo=FALSE, message=FALSE, out.width = '30%'}
+here("week5",
+     "screenshots",
+     "image000000[2].png") |>
+  knitr::include_graphics()
+```
+
 # Taking geotagged photos
 
 For the most part, your phone is collecting the latitude/longitude
@@ -204,14 +287,223 @@ explicitly turned off location access for your phone's camera.
 
 # Importing GPS traces
 
-Coming soon...
+Once you've exported a GPX file from a GPS device (such as a smart phone),
+you may want to bring it into your GIS software.
+
+GPX files include data in five layers:
+
+* route_points
+* routes
+* track_points
+* tracks
+* waypoints
+
+If you've just collected a GPS trace using an app like Strava, GPX Tracker, or OsmAnd,
+the app was recording your position and the current time at regular intervals (e.g.
+every second, or every five seconds). Those times and locations are stored in the
+track_points layer. They are connected into a line (based on the order in which they
+were recorded) that is stored in the tracks layer.
+
+## R
+
+You can use the `st_read()` function to load data from a GPX file into
+R. You will need to specify which layer you want.
+
+```{r, message=FALSE, results='hide'}
+path_points <- here("week5",
+     "examples",
+     "04-Aug-2023-1332.gpx") |>
+  st_read(layer = "track_points")
+
+path_line <- here("week5",
+     "examples",
+     "04-Aug-2023-1332.gpx") |>
+  st_read(layer = "tracks")
+```
+
+And here are the points and the associated line displayed on a map. Note that 
+I'm using `annotation_map_tile` to display a base map under my layers.
+
+It would likely be sufficient to display the line without the points, but viewing 
+the points could be useful for your own information. For example, in this example, 
+the line makes it look like I cut through a building, when what actually happened
+is that my device stopped recording my location for a few seconds while I walked
+around the corner.
+
+```{r}
+ggplot() +
+  annotation_map_tile(type = "cartolight",
+                      zoomin = 0,
+                      quiet=TRUE,
+                      progress = "none") +
+  geom_sf(data = path_line) +
+  geom_sf(data = path_points,
+          alpha = 0.2) +
+  theme_void()
+```
+
+## QGIS
+
+You can import a GPX file to QGIS by dragging and dropping it onto your map.
+You'll be able to specify which layers you want. The most relevant layers are
+likely to be "track_points" and "tracks".
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week5",
+     "examples",
+     "gifs",
+     "qgis-import.gif") |>
+  knitr::include_graphics()
+```
+
+## ArcGIS
+
+You can use the GPX to Features tool (in the Geoprocessing toolbox)
+in import a GPX file to ArcGIS Pro. If you want to import both points
+and lines, you'll need to import them separately.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week5",
+     "examples",
+     "gifs",
+     "arcgis-import.gif") |>
+  knitr::include_graphics()
+```
 
 # Extracting locations from geotagged photos
 
-Coming soon...
+Most digital cameras record metadata about each picture file as EXIF (Exchangeable
+Image File) data, which often includes the latitude/longitude coordinates for 
+where the picture was taken.
 
-# Importing csv locatations
+## Web browser
 
-Coming soon...
+There a websites that will display EXIF data for photos that you upload. One
+example is https://onlineexifviewer.com/
 
+Once you upload a photo, it will display all the associated metadata, including
+the location where the photo was taken. You can copy these coordinates to your
+clipboard and paste them into a text file or spreadsheet to create a csv file.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week5",
+     "examples",
+     "gifs",
+     "exif-web.gif") |>
+  knitr::include_graphics()
+```
+
+## R
+
+The `exifr` package will import EXIF data from a set of photos into
+a data frame in R.
+
+`exifr` is actually a wrapper around a Perl program (Perl is a programming language), 
+so you'll need to install Perl in order for it to run (before you load the package). 
+On Windows, you can install perl from
+https://strawberryperl.com/. On a Mac, you may already have perl installed.
+
+Once you've installed Perl and the `exif` package, you can load the `exif` package. 
+Then, run the function `configure_exiftool()` in the command line. You only need 
+to do this once. Then you can run the `read_exif()` function to extract the coordinates
+for all the photos in a directory by doing something like this:
+
+```{r}
+photo_data <- here("week5",
+                   "examples",
+                   "photos") |>
+  list.files(full.names = TRUE) |>
+  read_exif(tags = c("GPSLatitude", "GPSLongitude")) 
+```
+
+The result will be a data frame with three columns: 
+
+* `SourceFile`: The full path to the file on your computer
+* `GPSLatitude`: The latitude coordinate for where the photo was taken
+* `GPSLongitude`: The longitude coordinate for where the photo was taken
+
+You can save this as a csv file that you read into another GIS software.
+
+```{r}
+write_csv(photo_data,
+          file = here("week5",
+                      "examples",
+                      "photo-locs.csv"))
+```
+
+Or you can convert it into a set of points to work with in R.
+
+```{r}
+photo_points <- photo_data |>
+  st_as_sf(coords = c("GPSLongitude", "GPSLatitude"),
+           crs = "WGS84")
+
+ggplot() +
+  annotation_map_tile(type = "cartolight",
+                      zoomin = 0,
+                      quiet=TRUE,
+                      progress = "none") +
+  geom_sf(data = photo_points,
+          color = "purple") +
+  theme_void()
+```
+
+# Importing csv locations
+
+If you have a csv file with latitude/longitude coordinates for a set of points,
+you can easily import that data to any GIS software.
+
+## R
+
+If you read a csv file into R as a data frame, you can use `st_as_sf` to 
+convert that to a spatial data layer. You'll need to specify the column
+names for the x and y coordinates and the coordinate reference system.
+
+```{r}
+csv_points <- here("week5",
+     "examples",
+     "photo-locs.csv") |>
+  read_csv(show_col_types = FALSE) |>
+  st_as_sf(coords = c("GPSLongitude", "GPSLatitude"),
+           crs = "WGS84")
+
+ggplot() +
+  annotation_map_tile(type = "cartolight",
+                      zoomin = 0,
+                      quiet=TRUE,
+                      progress = "none") +
+  geom_sf(data = csv_points,
+          color = "orange") +
+  theme_void()
+```
+
+## QGIS
+
+In QGIS, go to "Add Layer" from the "Layer" menu and choose 
+"Add delimited text layer." Navigate to the csv file you want to import,
+specify the columns containing the x and y values, and indicate the 
+coordinate reference system those coordinates refer to.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week5",
+     "examples",
+     "gifs",
+     "qgis-csv-points.gif") |>
+  knitr::include_graphics()
+```
+
+## ArcGIS
+
+To add points from a csv file, click the "Add Data" button and then "XY Point Data".
+
+This will open the XY Table to Point tool. Navigate to the csv file, speficy the columns
+with x and y coordinates and coordinate system.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week5",
+     "examples",
+     "gifs",
+     "arcgis-csv-points.gif") |>
+  knitr::include_graphics()
+```
 

@@ -33,6 +33,11 @@
 * Clipping polygons
 * Generating random points within a polygon
 
+**Examples of complete assignments:**
+
+* [Pasco County, Florida (ArcGIS)](https://c-voulgaris.github.io/VIS-2128/week2/examples/makenzie-wenninghoff.pdf)
+* [Suffolk County, Massachusetts (R/Illustrator)](https://c-voulgaris.github.io/VIS-2128/week2/examples/sulaya-ranjit.pdf)
+
 ## Week 3
 
 **Dataset of the week:** [Cape Town Open Data Portal](https://c-voulgaris.github.io/VIS-2128/week3/dataset-odp.html)
@@ -43,6 +48,11 @@
 * Calculating distances
 * Transforming coordinate reference systems
 * Merging layers and features
+
+**Examples of complete assignments:**
+
+* [ArcGIS](https://c-voulgaris.github.io/VIS-2128/week3/examples/hliner.pdf)
+* [QGIS](https://c-voulgaris.github.io/VIS-2128/week2/examples/mgwiazda.pdf)
 
 ## Week 4
 
@@ -64,3 +74,7 @@
 * Extracting locations from geotagged photos
 * Importing a GPX trace
 * Importing points from a csv file
+
+## Week 6
+
+**Dataset of the week:** [Historic Maps](https://c-voulgaris.github.io/VIS-2128/week6/dataset-historic.html)

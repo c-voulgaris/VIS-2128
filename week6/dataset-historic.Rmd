@@ -1,0 +1,160 @@
+---
+title: "Historic Maps"
+subtitle: "Dataset of the Week (Week 4)"
+output: 
+  rmdformats::readthedown:
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+
+library(here)
+library(tidyverse)
+
+```
+
+
+# Background
+
+The Harvard Map Collection has a large number of historic, paper
+maps. You can visit them in person and a librarian will help you
+find a map that interests you and scan a copy of it. Make an 
+appointment from this page: 
+
+[Map Collection Appointments](https://outlook.office365.com/owa/calendar/HarvardMapCollection1@HU.onmicrosoft.com/bookings/){target="_blank"}
+
+I encourage you to visit the Map Collection in groups of three or four 
+students (with related interests) so that we don't overwhelm 
+available appointments with our class.
+
+Historic maps are a source of spatial data that can offer insight into
+what a place was like in the past, how it was perceived by those who 
+made maps, and what mapmakers wished to communicate about places. 
+
+The maps that you create today serve a specific purpose, and this is 
+true of historic maps as well. 
+
+# Historic Maps of London (1854, 1898, 1914)
+
+These three historic maps of London were each created at a 
+different time for a different purpose.
+
+## John Snow's Cholera Map (1854)
+
+John Snow was an English doctor the time of an 1854 Cholera 
+outbreak in the Broad Street region of London. Based on interviews
+with households with Cholera cases and his observations of water from
+a public pump located on Broad Street, he believed that the
+pump was the source of the outbreak. He created a map indicating 
+the number of Cholera deaths at each address, and also showing the
+locations of public pumps. This map helped convince local officials
+to removed the handle from the Broad Street pump, which was followed 
+by an immediate, sharp decline in Cholera cases.
+
+```{r, echo=FALSE, out.width = '100%'}
+here::here("week6",
+     "old-maps",
+     "Snow-cholera-map-1.jpg") |>
+  knitr::include_graphics()
+```
+
+## Charles Booth's Poverty Maps (1898)
+
+Charles Booth was a successful London businessman in the Victorian era, and he was 
+interested in the conditions of the poor. In 1884, while working on a project
+related to distributing funds for poverty relief, he became very unsatisfied
+with the usefulness of available census data for purposes of understanding
+poverty. In 1885, he came across work by socialist activist Henry Hyndman,
+which suggested that one in four Londoners lived in extreme poverty. He 
+believed this was a gross overstatement of the extent of the problem, and 
+the following year, he began work on his own detailed survey, which 
+involved interviews with factory owners, school boards, and clergy.
+
+The results was a detailed set of twelve map sheets that color-coded each
+street in London into one of seven categories:
+
+* Lowest class. Vicious, semi-criminal
+* Very poor, casual. Chronic want.
+* Poor. 18s to 21s a week for a moderate family.
+* Mixed. Some comfortable, others poor.
+* Fairly comfortable. Good ordinary earnings.
+* Middle class. Well-to-do.
+* Upper-middle and Upper classes. Wealthy.
+
+He ultimately concluded that Hyndman's estimate was likely an understatement.
+
+```{r, echo=FALSE, out.width = '100%'}
+here::here("week6",
+     "old-maps",
+     "booth.png") |>
+  knitr::include_graphics()
+```
+
+## Max Gill's Wonderground Map of London (1914)
+
+In the early twentieth century, Frank Pick, general manager of the London
+Underground commissioned several artists to design
+subway posters as part of a publicity campaign. Among these
+was a map by MacDonald (Max) Gill that came to be known as the *Wonderground
+map of London*. 
+
+The text around the border of the map says, "By paying us your pennies, you
+go about your business in trams, electric trains, and motor-driven buses, in 
+this largest of all cities, London by the Thames."
+
+```{r, echo=FALSE, out.width = '100%'}
+here::here("week6",
+     "old-maps",
+     "Gill.jpg") |>
+  knitr::include_graphics()
+```
+
+# W.E.B. Du Bois's Data Portraits (1900)
+
+In 1900, Thomas Calloway and Booker T. Washington persuaded the United
+States government to include an exhibit at the *Exposition Universelle* in 
+Paris about the progress made by African Americans since Emancipation, 
+which was in addition to other exhibits celebrating America's industrial
+and political strength. 
+Calloway invited W.E.B. Du Bois to contribute a social study of 
+African American Life to the exhibit. Du Bois and his students at 
+Atlanta University prepared two sets of infographics, which included maps.
+One of these focused specifically on Georgia, and the other focused on 
+more national and global scales.^[Battle-Baptiste, Whitney, and Britt Rusert, eds. 2018. W. E. B. Du Bois’s Data Portraits: Visualizing Black America. Amherst, Massachusetts New York: Princeton Architectural Press.]
+
+The following three maps represent towns and counties in Georgia.
+Each map shows the spatial distribution of Black residents,
+represented as dots with colors (red, green, blue, and black) 
+to classify people by social class. Yellow dots represent to approximate
+distribution of white residents.
+
+## Albany, Dougherty County, Georgia
+
+```{r, echo=FALSE, out.width = '100%'}
+here::here("week6",
+     "old-maps",
+     "du-bois-1.png") |>
+  knitr::include_graphics()
+```
+
+## McIntosh County, Georgia (outside of Darien)
+
+```{r, echo=FALSE, out.width = '100%'}
+here::here("week6",
+     "old-maps",
+     "du-bois-2.png") |>
+  knitr::include_graphics()
+```
+
+## Darien, McIntosh County, Georgia 
+
+```{r, echo=FALSE, out.width = '100%'}
+here::here("week6",
+     "old-maps",
+     "du-bois-3.png") |>
+  knitr::include_graphics()
+```

@@ -52,8 +52,8 @@
 **Examples of complete assignments:**
 
 * [ArcGIS](https://c-voulgaris.github.io/VIS-2128/week3/examples/hliner.pdf)
-* [QGIS](https://c-voulgaris.github.io/VIS-2128/week2/examples/mgwiazda.pdf)
-* [R](https://c-voulgaris.github.io/VIS-2128/week2/examples/akhan.pdf)
+* [QGIS](https://c-voulgaris.github.io/VIS-2128/week3/examples/mgwiazda.pdf)
+* [R](https://c-voulgaris.github.io/VIS-2128/week3/examples/akhan.pdf)
 
 ## Week 4
 

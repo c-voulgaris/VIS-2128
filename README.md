@@ -84,7 +84,7 @@
 
 [Skills tutorials (QGIS)](https://c-voulgaris.github.io/VIS-2128/week6/skills-qgis.html)
 
-[Skills tutorials (ArcGIS](https://c-voulgaris.github.io/VIS-2128/week6/skills-arcgis.html)
+[Skills tutorials (ArcGIS)](https://c-voulgaris.github.io/VIS-2128/week6/skills-arcgis.html)
 
 * Georeferencing an image
 * Manually creating a new data layer

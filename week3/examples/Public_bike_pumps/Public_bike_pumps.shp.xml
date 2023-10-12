@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xml:lang="en"><Esri><CreaDate>20230920</CreaDate><CreaTime>15192600</CreaTime><ArcGISFormat>1.0</ArcGISFormat><SyncOnce>TRUE</SyncOnce><DataProperties><lineage><Process ToolSource="c:\program files\arcgis\pro\Resources\ArcToolbox\toolboxes\Analysis Tools.tbx\Near" Date="20230920" Time="151926">Near Public_bike_pumps Air_Quality_Management_Areas # NO_LOCATION NO_ANGLE Planar "NEAR_FID NEAR_FID;NEAR_DIST NEAR_DIST"</Process></lineage></DataProperties></Esri></metadata>

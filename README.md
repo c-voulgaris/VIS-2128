@@ -52,8 +52,8 @@
 **Examples of complete assignments:**
 
 * [ArcGIS](https://c-voulgaris.github.io/VIS-2128/week3/examples/hliner.pdf)
-* [QGIS](https://c-voulgaris.github.io/VIS-2128/week2/examples/mgwiazda.pdf)
-* [R](https://c-voulgaris.github.io/VIS-2128/week2/examples/akhan.pdf)
+* [QGIS](https://c-voulgaris.github.io/VIS-2128/week3/examples/mgwiazda.pdf)
+* [R](https://c-voulgaris.github.io/VIS-2128/week3/examples/akhan.pdf)
 
 ## Week 4
 
@@ -79,3 +79,12 @@
 ## Week 6
 
 **Dataset of the week:** [Historic Maps](https://c-voulgaris.github.io/VIS-2128/week6/dataset-historic.html)
+
+[Skills tutorials (AllMaps)](https://c-voulgaris.github.io/VIS-2128/week6/skills-allmaps.html)
+
+[Skills tutorials (QGIS)](https://c-voulgaris.github.io/VIS-2128/week5/skills-qgis.html)
+
+[Skills tutorials](https://c-voulgaris.github.io/VIS-2128/week5/skills-arcgis.html)
+
+* Georeferencing an image
+* Manually creating a new data layer

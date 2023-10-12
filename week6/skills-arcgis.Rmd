@@ -1,0 +1,94 @@
+---
+title: "Skills: Digitizing historic map data"
+subtitle: "Week 6"
+output: 
+  rmdformats::readthedown:
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+#knitr::knit_engines$set(python = reticulate::eng_python) 
+```
+
+This page introduces useful skills for extracting spatial data from 
+historic maps
+
+# Creating a georeferenced raster layer from an image
+
+If you have an image file from a scanned map (for example, a historic
+map, or one you or a collaborator drew/annotated by hand), you can
+import it into GIS software and georeference it, which associates each
+pixel in your image with a geospatial location.
+
+In ArcGIS, you'll want to start by loading the image you want to 
+georeference. You can add image files from the "Add Data" button.
+If the image hasn't been georeferenced, it will probably place it
+on your map at about zero degrees latitude, zero degrees longitude 
+(in the ocean just west of Africa).
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+library(here)
+
+here("week6",
+     "Examples",
+     "gifs",
+     "arcgis-load-image.gif") |>
+  knitr::include_graphics()
+```
+
+Zoom your map to the approximate area covered by your map image, then 
+click on the "Georeference" button on the "Imagery" tab.
+
+Click "Add Control Points". You'll need to select at least three points on the
+image to georeference it. Ideally, there will be spaced far apart
+from one another (e.g. near the sides of the image) and will form 
+a triangle (rather than being along a straight line).
+
+Select a point on the image, followed by the corresponding location 
+on the basemap (you may need to turn off the display on the image to see the basemap). Repeat this at least three times. Each time you add a 
+control point the map will shift, rotate, or stretch to minimize the
+distances between the points on the image and the points on the map.
+
+When you are satisfied with the position of the image, click "Save"
+and then "Close Georeference."
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week6",
+     "Examples",
+     "gifs",
+     "arcgis-georef.gif") |>
+  knitr::include_graphics()
+```
+
+# Manually creating a layer of data
+
+Once you've loaded a georeferenced layer, you might want to features
+to create a vector layer.
+
+In ArcGIS< you'll need to start by creating a new feature class. You'll
+use the "Create Feature Class" tool from the Geoprocessing toolbox. 
+Specify a name and a geometry type for your new feature class, then 
+click "Run." You'll see a new layer added to the contents pane, but
+it will have no data in it.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week6",
+     "Examples",
+     "gifs",
+     "arcgis-make-feature class.gif") |>
+  knitr::include_graphics()
+```
+
+Now you can add features to your new feature class. Click the "Create"
+button on the "Edit" ribbon. In the "Create Features" tool, select
+the layer you want to add to, and add your features by clicking on the
+map. When you are done, click the "Finish" button (the green check mark).
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week6",
+     "Examples",
+     "gifs",
+     "arcgis-make-points.gif") |>
+  knitr::include_graphics()
+```

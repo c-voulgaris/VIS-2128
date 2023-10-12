@@ -82,9 +82,9 @@
 
 [Skills tutorials (AllMaps)](https://c-voulgaris.github.io/VIS-2128/week6/skills-allmaps.html)
 
-[Skills tutorials (QGIS)](https://c-voulgaris.github.io/VIS-2128/week5/skills-qgis.html)
+[Skills tutorials (QGIS)](https://c-voulgaris.github.io/VIS-2128/week6/skills-qgis.html)
 
-[Skills tutorials](https://c-voulgaris.github.io/VIS-2128/week5/skills-arcgis.html)
+[Skills tutorials](https://c-voulgaris.github.io/VIS-2128/week6/skills-arcgis.html)
 
 * Georeferencing an image
 * Manually creating a new data layer

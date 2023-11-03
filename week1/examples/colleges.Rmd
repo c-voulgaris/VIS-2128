@@ -1,0 +1,76 @@
+---
+title: "Colleges and Universities in Cambridge"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r libraries, echo=FALSE, message=FALSE, warning=FALSE}
+library(tigris)
+library(sf)
+library(leaflet)
+library(tidyverse)
+```
+
+```{r load-data, echo=FALSE, message=FALSE, results='hide'}
+# load landmark data and filter for cemeteries
+cambridge <- places(state = "MA") |>
+  filter(NAME == "Cambridge")  |>
+  st_transform("WGS84")
+
+cambridge_bb <- st_bbox(cambridge)
+
+landmark_poly <- landmarks(state = "MA", type = "area") |>
+  st_transform("WGS84") |>
+  st_filter(cambridge)
+
+colleges <- landmark_poly |>
+  filter(MTFCC == "K2540")
+
+roads <- roads(state = "MA", county = "Middlesex") |>
+  st_transform("WGS84") |>
+  st_filter(cambridge)
+
+water <- area_water(state = "MA", county = "Middlesex") |>
+  st_transform("WGS84") |>
+  st_filter(cambridge)
+```
+
+```{r map, echo=FALSE, warning=FALSE, out.width="100%", fig.height=7}
+college_pal <- colorFactor("Set1", colleges$FULLNAME)
+
+leaflet(colleges, options = leafletOptions(minZoom = 13)) |>
+  setView(lng = as.numeric(cambridge$INTPTLON),
+          lat = as.numeric(cambridge$INTPTLAT),
+          zoom = 13) |>
+  setMaxBounds(lng1 = as.numeric(cambridge_bb["xmin"]),
+               lng2 = as.numeric(cambridge_bb["xmax"]),
+               lat1 = as.numeric(cambridge_bb["ymin"]),
+               lat2 = as.numeric(cambridge_bb["ymax"])) |>
+  addPolylines(data = roads, 
+               color = "white",
+               weight = 1,
+               popup = ~FULLNAME)  |>
+  addPolygons(data = water,
+              stroke = FALSE,
+              fillColor = "powderblue",
+              fillOpacity = 1,
+              popup = ~FULLNAME) |>
+  addPolygons(data = colleges,
+              stroke = FALSE,
+              fillColor = ~college_pal(FULLNAME),
+              fillOpacity = 1,
+              popup = ~FULLNAME) |>
+  addLegend(position = "bottomleft",
+            pal = college_pal,
+            values = ~FULLNAME,
+            opacity = 1,
+            title = "Legend")
+```
+
+This map was created in R using the leaflet, tigris, and sf packages. My classmate,
+Nur Shlapobersly helped me figure out how to set the maximum map bounds. All data 
+are from United States Census TIGER files.

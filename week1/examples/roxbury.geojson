@@ -1,0 +1,13 @@
+{
+"type": "FeatureCollection",
+"name": "roxbury",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:EPSG::3857" } },
+"features": [
+{ "type": "Feature", "properties": { "FID": 11, "OBJECTID": 0, "SITE": "Vine Street", "PHONE": "635-1285", "FAX": "635-1291", "STREET": "339 Dudley Street", "NEIGH": "Roxbury", "ZIP": 2119 }, "geometry": { "type": "Point", "coordinates": [ -7912223.695855120196939, 5210056.162498639896512 ] } },
+{ "type": "Feature", "properties": { "FID": 13, "OBJECTID": 0, "SITE": "Rec. Division @ Madison Park*", "PHONE": "635-5206", "FAX": "635-5078", "STREET": "55 Malcom X Blvd", "NEIGH": "Roxbury", "ZIP": 2119 }, "geometry": { "type": "Point", "coordinates": [ -7913616.647220159880817, 5210794.623489730060101 ] } },
+{ "type": "Feature", "properties": { "FID": 14, "OBJECTID": 0, "SITE": "Tobin", "PHONE": "635-5216", "FAX": "635-5288", "STREET": "1481 Tremont St.", "NEIGH": "Roxbury", "ZIP": 2119 }, "geometry": { "type": "Point", "coordinates": [ -7914611.155625090003014, 5210902.426046320237219 ] } },
+{ "type": "Feature", "properties": { "FID": 16, "OBJECTID": 0, "SITE": "Shelburne", "PHONE": "635-5213", "FAX": "635-5224", "STREET": "2730 Washington S", "NEIGH": "Roxbury", "ZIP": 2119 }, "geometry": { "type": "Point", "coordinates": [ -7913725.23095293994993, 5209398.013471329584718 ] } },
+{ "type": "Feature", "properties": { "FID": 34, "OBJECTID": 0, "SITE": "Grove Hall", "PHONE": "635-1484", "FAX": "635-1485", "STREET": "51 Geneva Ave.", "NEIGH": "Roxbury", "ZIP": 2121 }, "geometry": { "type": "Point", "coordinates": [ -7912848.102170299738646, 5207357.249736780300736 ] } },
+{ "type": "Feature", "properties": { "FID": 35, "OBJECTID": 0, "SITE": "Mason Pool*", "PHONE": "635-5241", "FAX": "635-5627", "STREET": "159 Norfolk Ave.", "NEIGH": "Roxbury", "ZIP": 2118 }, "geometry": { "type": "Point", "coordinates": [ -7911567.332104479894042, 5209909.322164529934525 ] } }
+]
+}

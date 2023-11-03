@@ -1,0 +1,79 @@
+---
+title: "Educational Places in Manhattan"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r libraries, echo=FALSE, message=FALSE, warning=FALSE}
+library(tigris)
+library(sf)
+library(leaflet)
+library(tidyverse)
+```
+
+```{r load-data, echo=FALSE, message=FALSE, results='hide'}
+# load landmark data and filter for cemeteries
+manhattan <- counties(state = "NY") |>
+  filter(NAME == "New York")  |>
+  st_transform("WGS84")
+
+manhattan_bb <- st_bbox(manhattan)
+
+landmark_poly <- landmarks(state = "NY", type = "area") |>
+  st_transform("WGS84") |>
+  st_filter(manhattan)
+
+edu <- landmark_poly |>
+  filter(MTFCC == "K2540" |
+           MTFCC == "K2543" |
+           MTFCC == "K2545") |>
+  mutate(`Type of institution` = case_when(MTFCC == "K2540" ~ "College or university",
+                                         MTFCC == "K2543" ~ "School or academy",
+                                         MTFCC == "K2545" ~ "Museum or cultural center"))
+
+roads <- roads(state = "NY", county = "New York") |>
+  st_transform("WGS84")
+
+water <- area_water(state = "NY", county = "New York") |>
+  st_transform("WGS84") 
+```
+
+```{r map, echo=FALSE, warning=FALSE, out.width="100%", fig.height=7}
+edu_pal <- colorFactor("Set1", edu$`Type of institution`)
+
+leaflet(edu, options = leafletOptions(minZoom = 12)) |>
+  setView(lng = as.numeric(manhattan$INTPTLON),
+          lat = as.numeric(manhattan$INTPTLAT),
+          zoom = 12) |>
+  setMaxBounds(lng1 = as.numeric(manhattan_bb["xmin"]),
+               lng2 = as.numeric(manhattan_bb["xmax"]),
+               lat1 = as.numeric(manhattan_bb["ymin"]),
+               lat2 = as.numeric(manhattan_bb["ymax"])) |>
+  addPolylines(data = roads, 
+               color = "white",
+               weight = 1,
+               popup = ~FULLNAME)  |>
+  addPolygons(data = water,
+              stroke = FALSE,
+              fillColor = "powderblue",
+              fillOpacity = 1,
+              popup = ~FULLNAME) |>
+  addPolygons(data = edu,
+              stroke = FALSE,
+              fillColor = ~edu_pal(`Type of institution`),
+              fillOpacity = 1,
+              popup = ~FULLNAME) |>
+  addLegend(position = "bottomleft",
+            pal = edu_pal,
+            values = ~`Type of institution`,
+            opacity = 1,
+            title = "Legend")
+```
+
+This map was created in R using the leaflet, tigris, and sf packages. My classmate,
+Nur Shlapobersly helped me figure out how to set the maximum map bounds. All data 
+are from United States Census TIGER files.

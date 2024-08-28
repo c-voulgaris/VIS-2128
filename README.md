@@ -1,6 +1,6 @@
 # Resources for weekly assignments
 
-## Week 1
+## Census Geography
 
 **Dataset of the week:** [Census TIGER files](https://c-voulgaris.github.io/VIS-2128/week1/dataset-tiger.html)
 
@@ -21,7 +21,7 @@
 * [Railroads and urban areas](https://c-voulgaris.github.io/VIS-2128/week1/rail.pdf)
 
 
-## Week 2
+## Census Surveys
 
 **Dataset of the week:** [Census surveys](https://c-voulgaris.github.io/VIS-2128/week2/dataset-census-survey.html)
 
@@ -32,7 +32,7 @@
 * Clipping polygons
 * Generating random points within a polygon
 
-## Week 3
+## Distance
 
 **Dataset of the week:** [Cape Town Open Data Portal](https://c-voulgaris.github.io/VIS-2128/week3/dataset-odp.html)
 
@@ -43,7 +43,7 @@
 * Transforming coordinate reference systems
 * Merging layers and features
 
-## Week 4
+## Networks
 
 **Dataset of the week:** [OpenStreetMap (Philippines)](https://c-voulgaris.github.io/VIS-2128/week4/dataset-osm.html)
 
@@ -53,7 +53,7 @@
 * Loading a routeable street network
 * Generating a walkshed
 
-## Week 5
+## Field Data
 
 **Dataset of the week:** [Field data](https://c-voulgaris.github.io/VIS-2128/week5/dataset-field.html)
 
@@ -64,7 +64,7 @@
 * Importing a GPX trace
 * Importing points from a csv file
 
-## Week 6
+## Historic Maps
 
 **Dataset of the week:** [Historic Maps](https://c-voulgaris.github.io/VIS-2128/week6/dataset-historic.html)
 

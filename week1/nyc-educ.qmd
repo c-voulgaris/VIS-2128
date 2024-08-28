@@ -1,0 +1,114 @@
+---
+title: "Educational Landmarks in Manhattan"
+format: 
+  html:
+    toc: true
+    toc-location: left
+    toc-title: "Notes"
+editor: visual
+theme: pulse
+execute: 
+  echo: false
+  warning: false
+---
+
+```{r}
+#| message: false
+#| results: hide
+
+library(tigris)
+library(sf)
+library(leaflet)
+library(tidyverse)
+
+# load landmark data and filter for cemeteries
+manhattan <- counties(state = "NY") |>
+  filter(NAME == "New York")  |>
+  st_transform("WGS84")
+
+manhattan_bb <- st_bbox(manhattan)
+
+landmark_poly <- landmarks(state = "NY", type = "area") |>
+  st_transform("WGS84") |>
+  st_filter(manhattan)
+
+edu <- landmark_poly |>
+  filter(MTFCC == "K2540" |
+           MTFCC == "K2543" |
+           MTFCC == "K2545") |>
+  mutate(`Type of institution` = 
+           case_when(MTFCC == "K2540" ~ "College or university",
+                     MTFCC == "K2543" ~ "School or academy",
+                     MTFCC == "K2545" ~ "Museum or cultural center"))
+
+roads <- roads(state = "NY", county = "New York") |>
+  st_transform("WGS84")
+
+water <- area_water(state = "NY", county = "New York") |>
+  st_transform("WGS84") 
+```
+
+Educational institutions in Manhattan used as landmarks by the United States Census Bureau.
+
+```{r}
+#| fig-height: 8
+
+edu_pal <- colorFactor("Set1", edu$`Type of institution`)
+
+leaflet(edu, 
+        options = leafletOptions(minZoom = 12)) |>
+  setView(lng = as.numeric(manhattan$INTPTLON),
+          lat = as.numeric(manhattan$INTPTLAT),
+          zoom = 12) |>
+  setMaxBounds(lng1 = as.numeric(manhattan_bb["xmin"]),
+               lng2 = as.numeric(manhattan_bb["xmax"]),
+               lat1 = as.numeric(manhattan_bb["ymin"]),
+               lat2 = as.numeric(manhattan_bb["ymax"])) |>
+  addPolylines(data = roads, 
+               color = "white",
+               weight = 1,
+               popup = ~FULLNAME)  |>
+  addPolygons(data = water,
+              stroke = FALSE,
+              fillColor = "powderblue",
+              fillOpacity = 1,
+              popup = ~FULLNAME) |>
+  addPolygons(data = edu,
+              stroke = FALSE,
+              fillColor = ~edu_pal(`Type of institution`),
+              fillOpacity = 1,
+              popup = ~FULLNAME) |>
+  addLegend(position = "bottomleft",
+            pal = edu_pal,
+            values = ~`Type of institution`,
+            opacity = 1,
+            title = "Legend")
+```
+
+### Audience and purpose
+
+This map is intended for an audience that is generally familiar with Manhattan geography, so the shape of the island will be familiar and the viewer will know its approximate scale and location relative to the rest of New York City. The purpose of the map is to inform the viewer about which educational institutions (schools, museums, and cultural centers) the United States Census bureau uses as landmarks and how they are distributed throughout the borough. Users can zoom in on the map and click on a landmark to see its name.
+
+### Data sources
+
+This map includes the following layers from the Census TIGER files, all accessed via the tigris package in R.
+
++-----------------------+----------------------------------------------------------------------------------+
+| Layer                 | Source                                                                           |
++=======================+==================================================================================+
+| Water                 | New York County water area (2021)                                                |
++-----------------------+----------------------------------------------------------------------------------+
+| Roads                 | New York County roads (2021)                                                     |
++-----------------------+----------------------------------------------------------------------------------+
+| Educational landmarks | New York County landmarks (area), filtered to include the following MTFCC codes: |
+|                       |                                                                                  |
+|                       | -   K2540 (College or university)                                                |
+|                       |                                                                                  |
+|                       | -   K2543 (School or academy)                                                    |
+|                       |                                                                                  |
+|                       | -   K2545 (Museum of cultural center)                                            |
++-----------------------+----------------------------------------------------------------------------------+
+
+### Software
+
+This page was created as an R Quarto document. The map was creating using the R leaflet package.

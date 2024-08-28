@@ -17,10 +17,9 @@
 
 **Examples of complete assignments:**
 
-* [Education  in Mahattan (R - Interactive)](https://c-voulgaris.github.io/VIS-2128/week1/examples/nyc-colleges.html)
-* [Railroads and urban areas (R - Static)](https://c-voulgaris.github.io/VIS-2128/week1/examples/railway.pdf)
-* [Landmarks in Cambridge (QGIS)](https://c-voulgaris.github.io/VIS-2128/week1/examples/cambridge-landmarks.pdf)
-* [Middlesex County Roads (ArcGIS/Illustrator)](https://c-voulgaris.github.io/VIS-2128/week1/examples/middlesex-roads.pdf)
+* [Education  in Mahattan](https://c-voulgaris.github.io/VIS-2128/week1/nyc-educ.html)
+* [Railroads and urban areas](https://c-voulgaris.github.io/VIS-2128/week1/rail.pdf)
+
 
 ## Week 2
 
@@ -33,11 +32,6 @@
 * Clipping polygons
 * Generating random points within a polygon
 
-**Examples of complete assignments:**
-
-* [Pasco County, Florida (ArcGIS)](https://c-voulgaris.github.io/VIS-2128/week2/examples/makenzie-wenninghoff.pdf)
-* [Suffolk County, Massachusetts (R/Illustrator)](https://c-voulgaris.github.io/VIS-2128/week2/examples/sulaya-ranjit.pdf)
-
 ## Week 3
 
 **Dataset of the week:** [Cape Town Open Data Portal](https://c-voulgaris.github.io/VIS-2128/week3/dataset-odp.html)
@@ -48,12 +42,6 @@
 * Calculating distances
 * Transforming coordinate reference systems
 * Merging layers and features
-
-**Examples of complete assignments:**
-
-* [ArcGIS](https://c-voulgaris.github.io/VIS-2128/week3/examples/hliner.pdf)
-* [QGIS](https://c-voulgaris.github.io/VIS-2128/week3/examples/mgwiazda.pdf)
-* [R](https://c-voulgaris.github.io/VIS-2128/week3/examples/akhan.pdf)
 
 ## Week 4
 

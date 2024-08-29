@@ -4,6 +4,7 @@ library(tidyverse)
 library(crsuggest)
 library(ggspatial)
 library(here)
+library(ggthemes)
 
 # Load railways layer
 rail <- rails() |>
@@ -17,8 +18,8 @@ my_crs <- crs_potential$crs_proj4[1]
 
 # Define a plot bounding box in the projected coordinate system
 pts <- tibble(name = c("SW", "NE"), 
-              lat = c(17.5, 51.5),
-              lon = c(-121, -65.76570398048696 )) |>
+              lat = c(24.5, 49.2),
+              lon = c(-117.1, -65.76570398048696 )) |>
   st_as_sf(coords = c("lon", "lat"), crs = "WGS84") |>
   st_transform(my_crs)
 
@@ -55,31 +56,11 @@ ggplot(rail_projected) +
   scale_color_manual(name = "",
                      values = c("gray",
                                 "skyblue4")) +
-  annotate("text", 
-           x = bbox["xmin"] + 
-             0*(bbox["xmax"] - bbox["xmin"]),
-           y = bbox["ymin"] + 
-             1*(bbox["ymax"] - bbox["ymin"]),
-           label = "Rail connections among urban areas",
-           size = 6,
-           vjust = 1, hjust = 0) +
-  annotate("text", 
-           x = bbox["xmin"] + 
-             0*(bbox["xmax"] - bbox["xmin"]),
-           y = bbox["ymin"] + 
-             0*(bbox["ymax"] - bbox["ymin"]),
-           label = "My classmate, Dawon Oh helped me with this assignment by suggesting I reproject the data before plotting.\nAll data are from United States Census TIGER files.\nThis map was created in the R programming language using the tigris, sf, crsuggest, and tidyverse, and ggspatial packages",
-           size = 3,
-           vjust = 0, hjust = 0) +
-  annotation_scale(pad_y = unit(1, "in"),
-                   pad_x = unit(0.5, "in")) +
-  annotation_north_arrow(pad_y = unit(1.5, "in"),
-                   pad_x = unit(0.5, "in")) +
-  theme_void() +
-  theme(legend.position = "right",
-        plot.margin = margin(0, 40, 0, 0))
+  theme_map() +
+  theme(legend.background = element_rect(fill = NA))
+
 
 here("week1",
      "examples",
-     "railway.pdf") |>
-  ggsave(width = 11, height = 8.5, units = "in")
+     "railway.jpg") |>
+  ggsave(width = 8, height = 6, units = "in", dpi = 600)

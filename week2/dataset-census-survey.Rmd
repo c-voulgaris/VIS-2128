@@ -139,7 +139,7 @@ one of the variables will generally be the total across categories,
 and other variables might be totals within subcategories. For example, 
 here is Table H003 from the 2010 Decennial Census for Congressional Districts 
 in Mississippi. Table H003 is 
-about the occopancy status of housing units. It includes three variables:
+about the occupancy status of housing units. It includes three variables:
 
 * The total number of housing units (H003001)
 * The number of occupied housing units (H003002), and 

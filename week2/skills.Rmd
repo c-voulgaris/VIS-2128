@@ -1,6 +1,6 @@
 ---
-title: "Skills: Displaying map data"
-subtitle: "Week 1"
+title: "Skills: Varying feature symbology"
+subtitle: "Week 2"
 output: 
   rmdformats::readthedown:
     toc_depth: 3
@@ -28,31 +28,6 @@ library(knitr)
 library(tigris)
 ```
 
-In order to run Python code from RStudio, I'm using the `reticulate`
-package and setting up my RStudio environment so it knows where I 
-have Python installed. Just because you _can_ run Python in RStudio, doesn't 
-mean you should. You might be better served by PyCharm or Jupyter notebooks.
-
-```{r}
-library(reticulate)
-Sys.setenv(RETICULATE_PYTHON = here("env_2128/Scripts/python.exe"))
-use_virtualenv(here("env_2128"))
-```
-
-The Python skills on this page use the following Python packages.
-
-```{python, warning=FALSE}
-import geopandas
-import pygris
-import pandas
-
-import matplotlib.pyplot as plt
-
-from pyprojroot.here import here
-from geopandas.tools import sjoin
-from cenpy import products
-from cenpy import explorer
-```
 
 # Finding census variables
 
@@ -226,24 +201,10 @@ wayne_race <- get_decennial(geography = "tract",
 ```
 
 
-## Python
-
-The cenpy package in Python makes it easy to download data from the
-census API (but not necessarily easy to search for tables and variable names).
-
-Here is how I would get contents of Table P9 from the 2010 census for 
-Wayne County, Michigan.
-
-```{python, message=FALSE, warning=FALSE}
-race_wayne_py = products.Decennial2010().from_county(county='Wayne, MI', 
-                                                     level='tract',
-                                                     variables=['^P009'])
-```
-
 ## Web interface
 
 Continuing the previous example, where we identified a table with race and
-ethnicity data for all censis tracts in Wayne County, Michigan: 
+ethnicity data for all census tracts in Wayne County, Michigan: 
 
 When I select this table, I see that it's organized with census tracts
 in columns and variables in rows. It will be more useful to 
@@ -330,7 +291,7 @@ here("week2",
   knitr::include_graphics()
 ```
 
-## Remove white space
+### Remove white space
 
 There are also some spaces at the beginning of each tract name, and these
 will cause you problems when you want to match these values with the tract

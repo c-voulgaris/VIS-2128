@@ -12,11 +12,11 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 This page introduces useful skills for displaying
-geospatial data on a map using R, Python, QGIS, or ARcGIS.
+geospatial data on a map using R, QGIS, or ArcGIS.
 
 The R skills on this page use the following R packages:
 
-```{r, message=FALSE}
+```{r, message=FALSE, warning=FALSE}
 library(tigris)
 library(rnaturalearth)
 library(sf)
@@ -28,30 +28,7 @@ library(ggthemes)
 library(htmlwidgets)
 library(here)
 library(RColorBrewer)
-```
-
-In order to run Python code from RStudio, I'm using the `reticulate`
-package and setting up my RStudio environment so it knows where I 
-have Python installed. Just because you _can_ run Python in RStudio, doesn't 
-mean you should. You might be better served by PyCharm or Jupyter notebooks.
-
-```{r}
-library(reticulate)
-Sys.setenv(RETICULATE_PYTHON = here("env_2128/Scripts/python.exe"))
-use_virtualenv(here("env_2128"))
-```
-
-The Python skills on this page use the following Python packages.
-
-```{python}
-import geopandas
-import pygris
-import pandas
-
-import matplotlib.pyplot as plt
-
-from pyprojroot.here import here
-from geopandas.tools import sjoin
+library(crsuggest)
 ```
 
 # Loading data
@@ -105,27 +82,6 @@ community_c <- here("week1",
   st_read()
 ```
 
-## Python
-
-`pygris` is the Python version of `tigris` and can download TIGER
-files via the census API. It is not as complete as `tigris`.
-
-```{python, message=FALSE, results = 'hide'}
-states = pygris.states()
-
-rails = pygris.rails()
-```
-
-You can load spatial data from a file using the `read_file` function
-in the `geopandas` package. To read shapefiles, reference the directory
-containing the set of files.
-
-```{python}
-open_space = geopandas.read_file(here("week1/data/Open_Space.geojson"))
-
-RI_landmarks = geopandas.read_file(here("week1/data/tl_2022_44_pointlm"))
-```
-
 ## QGIS
 
 In QGIS, you can load a layer by dragging and dropping it into 
@@ -174,6 +130,18 @@ of a variable.
 texas <- states |>
   filter(NAME == "Texas")
 
+washington <- states |>
+  filter(NAME == "Washington")
+
+contig_states <- states |>
+  filter(STUSPS != "AK" &
+           STUSPS != "PR" &
+           STUSPS != "AS" &
+           STUSPS != "MP" &
+           STUSPS != "VI" &
+           STUSPS != "HI" &
+           STUSPS != "GU")
+
 TX_cemeteries <- TX_landmarks |>
   filter(MTFCC == "K2582")
 
@@ -181,12 +149,6 @@ TX_golf <- TX_landmarks |>
   filter(MTFCC == "K2561")
 ```
 
-
-## Python
-
-```{python}
-RI_state = states[states['NAME'] == 'Rhode Island']
-```
 
 ## QGIS
 
@@ -238,20 +200,6 @@ TX_rails <- rails |>
   st_filter(texas)
 ```
 
-## Python
-
-In Python, you can do this in two steps: 
-
-1. A spatial join (`sjoin`) will add columns from the polygon containing
-each feature. Features that aren't in a polygon will have NA (missing) values.
-2. `dropna` will filter out the rows with an NA value for a column
-that comes from the polygon you used in the spatial join.
-
-```{python}
-is_rail_in_RI = sjoin(rails, RI_state, how = 'left')
-
-RI_rails = is_rail_in_RI.dropna(subset=['STATEFP'])
-```
 
 ## QGIS
 
@@ -302,8 +250,7 @@ here("week1",
 # Viewing data in a map
 
 It can be helpful to take an initial look at your data on a map. ArcGIS
-and QGIS will display your data in a map panel when you load it. In R or 
-Python, you'll need to create some kind of plot to visualize your data.
+and QGIS will display your data in a map panel when you load it. In R, you'll need to create some kind of plot to visualize your data.
 
 ## R (interactive)
 
@@ -345,45 +292,139 @@ ggplot(texas) +
           color = "red")
 ```
 
-## Python (interactive)
 
-The `explore` function in `geopandas` is useful for creating a quick
-interactive map. By default, it will display the layer over OpenStreetMap tiles
-and add popups displaying values for all variables.
+# Choosing and changing a map projection
 
-In the code below, I'm creating the interactive map and saving it as an 
-html file. I can embed that map within my knitted RMarkdown document
-by adding the line `![](examples/RI_rail.html){width=100% height=500px}`
-below the chunk (not within any code chunk).
+All Census TIGER files are in a geographic coordinate system (meaning
+coordinates are stored as latitude/longitude coordinates) called NAD 83.
 
-In a Jupyter notebook, you wouldn't need to save and embed the map. It would
-just render below your code chunk.
+By default, having your data stored in a geographic coordinate system will mean
+it is displayed some kind of Mercator projection by default. In the northern 
+parts of the United States, this may make your map look a little distorted and 
+you may want to change what projection is used to display your data.
 
-```{python}
-int_map = RI_state.explore()
-int_map = RI_rails.explore(m = int_map, color = 'red')
 
-int_map.save("examples/RI_rail.html")
+
+## R
+
+R has a handy package called `crsuggest` that will suggest an appropriate 
+projection for a spatial dataset. The most useful function in this package is
+called `suggest_crs`. It will return a table of potential coordinate reference
+systems you can use. 
+
+```{r}
+new_crs <- suggest_crs(contig_states)
+
+new_crs
 ```
 
 
-![](examples/RI_rail.html){width=100% height=500px}
 
+## QGIS
 
-## Python (static)
+In QGIS
 
-To create a static map in Python, use the `plot` function. Create the plot with 
-an initial layer. To add additional layer, use the `ax` argument to add them 
-to the initial map.
+# Setting the map projection
 
-```{python, eval=FALSE}
-stat_map = texas.plot()
-stat_map = TX_rails.plot(ax = stat_map, color = 'red')
+All Census TIGER files are in a geographic coordinate system (meaning
+coordinates are stored as latitude/longitude coordinates) called NAD 83.
 
-plt.savefig("examples/texas_rail.png")
+By default, having your data stored in a geographic coordinate system will mean
+it is displayed some kind of Mercator projection by default. In the northern 
+parts of the United States, this may make your map look a little distorted and 
+you may want to change what projection is used to display your data.
+
+Which map projection should you use? If you are working in the United States 
+and your map is of a region the size of a small or medium-size state, a good
+option would be a state plane coordinate system. State plane coordinate systems have coordinates
+in units of feet. One way to find suggestions for appropriate coordinate 
+reference systems is to go to https://spatialreference.org/, where you can search for a 
+particular geography.
+
+Each software program also has some ability to search for a coordinate reference
+system (R has a particularly handy method for this).
+
+## R (interactive)
+
+You can't change the projection on an interactive leaflet map. All maps are 
+projected in Web Mercator, which is standard for web-based maps.
+
+## R (static)
+
+Here is are the contiguous United States in a ggplot with a Mercator projection.
+
+```{r}
+ggplot(contig_states) +
+  geom_sf() +
+  theme_void()
 ```
 
-![](examples/texas_rail.png)
+R has a handy package called `crsuggest` that will suggest an appropriate 
+projection for a spatial dataset. The most useful function in this package is
+called `suggest_crs`. It will return a table of potential coordinate reference
+systems you can use. 
+
+```{r}
+new_crs <- suggest_crs(contig_states)
+
+new_crs
+```
+
+I'll use the first one on the list. I can use the `coord_sf` function to set the 
+`crs` parameter using the crs_code from the above table.
+
+
+```{r}
+ggplot(contig_states) +
+  geom_sf() +
+  coord_sf(crs = 6350) +
+  theme_void()
+```
+
+## QGIS
+
+Click on the button on the bottom right corner of your map window that 
+shows the current projection, and select a new projection. You can
+select from a list of recently-used projections, or from a longer
+list of pre-defined projections. You can use the search bar to search
+for a projection by name.
+
+In this example, I'm reprojecting from the WGS 84 to 
+the Washington State Plane (North) CRS. You can search for a state plane 
+CRS by typing the name of the state in the search bar and then finding
+it in the "Predefined Coordinate Reference Systems" box under 
+"Projected" and "Lambert Conformal Conic" (most state plane systems
+are of the Lambert Conformal Conic type). 
+
+If this is a 
+reprojection you haven't done before, 
+you might see a dialog asking you to select a transformation method.
+In this case, you can just accept the default.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week1",
+     "examples",
+     "qgis-gifs",
+     "projection.gif") |>
+  knitr::include_graphics()
+```
+
+## ArcGIS
+
+You can change the map's coordinate system from the Map Properties window,
+under "Coordinate System."
+
+To find a state plan coordinate system, serach for the name of the state, 
+and then find it in the "XY Coordinate Systems Available" box under 
+"Projected Coordinate System", then "State Plane", then "NAD 1983 (2011) (US feet)".
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week1",
+     "examples",
+     "qgis-gifs",
+     "projection-arc.gif") |>
+  knitr::include_graphics()
+```
 
 # Setting symbology by layer
 
@@ -490,48 +531,7 @@ ggplot() +
   
 ```
 
-## Python (static)
 
-The `plot` function in `geopandas` includes the following arguments you can 
-use to style your layers.
-
-* `edgecolor`: The outline color for a polygon
-* `facecolor`: The fill color for a polygon 
-* `linewidth`: The line width for a line or polygon outline
-* `linestyle`: The line style for a line or polygon outline. Could be one of:
-    * `'-'` for a solid line
-    * `'--'` for a dashed line
-    * `'-.'` for a dash-dot line
-    * `':'` for a dotted line
-* `alpha`: The transparency/opacity the feature.
-* `markersize`: The marker size for points.
-* `marker`: The marker shape for points. Could be one of:
-    * `'o'`: for a circle marker
-    * `'v`: for a triangle marker
-    * `'s'`: for a square marker
-    * `'+'`: for a plus marker
-    * `'x'`: for an x marker
-* `color`: The color of the feature.
-
-```{python, eval=FALSE}
-stat_map = RI_state.plot(edgecolor = 'gray', 
-                         facecolor = 'cornsilk')
-                         
-stat_map = RI_landmarks.plot(ax = stat_map,
-                             marker = 's',
-                             markersize = 3,
-                             alpha = 0.3,
-                             color = 'darkgreen')
-                             
-stat_map = RI_rails.plot(ax = stat_map, 
-                         color = 'black',
-                         linewidth = 1,
-                         linestyle = ':')
-
-plt.savefig("examples/RI_rails_lm.png")
-```
-
-![](examples/RI_rails_lm.png)
 
 ## QGIS
 
@@ -617,20 +617,7 @@ ggplot(open_space) +
   scale_fill_brewer(palette = "Set3")
 ```
 
-## Python (static)
 
-You can vary a color by attribute in a geopandas plot by selecting a 
-variable for the `column` argument and a color palette using the
-`cmap` argument.
-
-```{python, eval=FALSE}
-bos_op_space = open_space.plot(column = "OWNERSHIP",
-                               cmap = "Set3")
-
-plt.savefig("examples/bos_op_space.png")
-```
-
-![](examples/bos_op_space.png)
 
 ## QGIS
 
@@ -735,35 +722,7 @@ ggplot(africa) +
   theme_map()
 ```
 
-## Python (static)
 
-You can use the Python function `set_facecolor` to set the background color
-for your map and the `grid` function to add a grid. 
-
-You can turn off tick labels with `set_xticklabels` and `set_yticklabels`.
-
-You can turn off the border around the plot window using `spines.set_visible(False)`.
-
-```{python, eval=FALSE}
-stat_map = RI_state.plot(edgecolor = 'gray', 
-                         facecolor = 'cornsilk')
-
-stat_map.set_facecolor('lightblue')
-
-stat_map.grid(color='blue', linestyle=':', linewidth=0.5)
-
-stat_map.set_xticklabels([])
-stat_map.set_yticklabels([])
-
-stat_map.spines['top'].set_visible(False)
-stat_map.spines['bottom'].set_visible(False)
-stat_map.spines['right'].set_visible(False)
-stat_map.spines['left'].set_visible(False)
-
-plt.savefig("examples/RI_blue_grid.png")
-```
-
-![](examples/RI_blue_grid.png)
 
 ## QGIS
 
@@ -921,45 +880,8 @@ ggplot(open_space) +
         legend.background = element_rect(fill = alpha("white", 0.7)))
 ```
 
-## Python (static)
 
-You can add a legend to a `geopandas` plot by setting `legend = True` when
-you create the plot.
 
-Python's `geopandas` package will add a what the `matplotlib` package calls a
-`colorbar` for continuous variables. You can use `legend_kwds` to control the orientation
-and title for the color bar. 
-
-```{python, eval=FALSE}
-bos_op_space = open_space.plot(column = "ACRES",
-                               cmap = "PuBuGn",
-                               legend = True,
-                               legend_kwds={'orientation': 'horizontal',
-                                            'label' : 'Park size (acres)'})
-
-plt.savefig("examples/bos_legend_size.png")
-```
-
-![](examples/bos_legend_size.png)
-
-For categorical variables, `geopandas` will add a what the `matplotlib` package calls a
-`legend` for continuous variables. You can use `legend_kwds` to control the location 
-(within the plot) and title for the legend. It's worth noticing that the available keywords
-are different for continuous and categorical variables (e.g. `'title'` for categorical
-variables and `'label` for continuous variables) and that these two types of legends 
-behave differently.
-
-```{python, eval=FALSE}
-bos_op_space = open_space.plot(column = "OWNERSHIP",
-                               cmap = "Set1",
-                               legend = True,
-                               legend_kwds={'loc': 'lower right',
-                                            'title': 'Park owner'})
-
-plt.savefig("examples/bos_legend_owner.png")
-```
-
-![](examples/bos_legend_owner.png)
 
 ## QGIS
 
@@ -1056,25 +978,7 @@ ggplot(africa) +
   theme_map()
 ```
 
-## Python (static)
 
-You can use the `geopandas` functions `set_xlim()` and
-`set_ylim()` to set the map extents.
-
-```{python, eval=FALSE}
-bos_op_space = open_space.plot(column = "OWNERSHIP",
-                               cmap = "Set1",
-                               legend = True,
-                               legend_kwds={'loc': 'lower right',
-                                            'title': 'Park owner'})
-
-bos_op_space.set_xlim(-71.2, -70.52)
-bos_op_space.set_ylim(42.17, 42.45)
-
-plt.savefig("examples/bos_wide.png")
-```
-
-![](examples/bos_wide.png)
 
 ## QGIS
 
@@ -1372,29 +1276,7 @@ here("week1",
          units = "in")
 ```
 
-## Python (interactive)
 
-You can call the `save()` function on an interactive map to 
-save it as an html file.
-
-```{python}
-int_map = RI_state.explore()
-
-int_map.save("examples/RI.html")
-```
-
-## Python (static)
-
-The `savefig` function will save your most recent plot.
-
-```{python, eval=FALSE}
-stat_map = RI_state.plot(edgecolor = 'gray', 
-                         facecolor = 'cornsilk')
-
-stat_map.set_axis_off()
-
-plt.savefig("examples/RI.pdf")
-```
 
 ## QGIS
 

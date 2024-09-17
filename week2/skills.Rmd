@@ -528,7 +528,7 @@ here("week2",
 ## ArcGIS
 
 With the attribute table open, you can click the "Add field" button and enter 
-a name for the new field.
+a name for the new field.**Note: Make sure you select the right data type. "Long" means the values will be whole numbers, "Double" means they can be decimal values.**
 
 ```{r, echo=FALSE, message=FALSE, out.width = '100%'}
 here("week2",
@@ -856,11 +856,50 @@ ggplot(la_tracts) +
   theme_void()
 ```
 
-## QGIS or ArcGIS
+## ArcGIS
 
-In QGIS or ArcGIS, you'd need to create a new version of the variable with 
+In ArcGIS, you'd need to create a new version of the variable with 
 log-transformed values.
 
+Before doing the calculation, you'll need to filter out any areas with a 
+value of zero for the value you want to log-transform (because you'll get 
+an error if you try to take the logarithm of zero).
+
+Start by creating a new variable. **Note: Again, make sure you select the right data type. "Long" means the values will be whole numbers, "Double" means they can be decimal values.**
+
+Calculate the value of the new variable as `math.log(!density!)` (if density is
+the name of your density variable).
+
+```{r, echo=FALSE, message=FALSE, out.width = '30%'}
+here("week2",
+     "examples",
+     "arc-gis-log-calc.png") |>
+  knitr::include_graphics()
+```
+
+Set the primary symbology to as "unclassed colors" to get a 
+continuous color ramp. If you choose the density variable in the "Field" menu,
+you will see default values for the upper and lower labels as the (rounded)
+minimum and maximum values for that variable.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week2",
+     "examples",
+     "arc-gis-dens-ramp-1.png") |>
+  knitr::include_graphics()
+```
+
+If you change the feild to your log-transformed variable, you can manually
+change the labels for minimum and maximum values to correspond to the 
+minimum and maximum values for the untransformed density value, rather than
+showing the log-transformed values on your legend.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week2",
+     "examples",
+     "arc-gis-dens-ramp-2.png") |>
+  knitr::include_graphics()
+```
 
 # Sampling points in a polygon
 

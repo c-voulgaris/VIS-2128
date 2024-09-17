@@ -32,10 +32,6 @@
 * Clipping polygons
 * Generating random points within a polygon
 
-**Examples of complete assignments:**
-
-* [Walden County, Michigan](https://c-voulgaris.github.io/VIS-2128/week2/examples/walden_mi.pdf)
-
 ## Distance
 
 **Dataset of the week:** [Cape Town Open Data Portal](https://c-voulgaris.github.io/VIS-2128/week3/dataset-odp.html)

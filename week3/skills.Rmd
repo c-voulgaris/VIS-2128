@@ -31,6 +31,7 @@ Bristol, United Kingdom:
 * [Public bike pumps](https://opendata.bristol.gov.uk/datasets/bcc::public-bike-pumps-1/explore)
 * [Wards](https://opendata.bristol.gov.uk/datasets/bcc::wards/explore)
    * Some Wards (a subset of wards from the Wards layer)
+* [Electric Vehicle Charging Stations](https://opendata.bristol.gov.uk/datasets/ebfdcdd3a6c848a4ac8190b2dde893ca_21/explore)
 
 ```{r, echo=FALSE, message=FALSE, results='hide'}
 aqma <- here("week3",
@@ -42,6 +43,13 @@ pumps <- here("week3",
              "examples",
              "Public_bike_pumps.geojson") |>
   st_read()
+
+ev_charge <- here("week3",
+             "examples",
+             "Electric_vehicle_charging_points_NCR.csv") |>
+  read_csv() |>
+  st_as_sf(coords = c("Longitude", "Latitude")) |>
+  st_set_crs("WGS84")
 
 wards <- here("week3",
              "examples",
@@ -189,6 +197,9 @@ consistent with one of the other layers I'm using. I can use
 
 ```{r}
 pumps <- pumps |>
+  st_transform(st_crs(wards))
+
+ev_charge <- ev_charge |>
   st_transform(st_crs(wards))
 ```
 
@@ -663,7 +674,7 @@ here("week3",
 
 ## ArcGIS
 
-The BUffer geoprocessing tool in ArcGIS will create a buffer around
+The Buffer geoprocessing tool in ArcGIS will create a buffer around
 features in a layer. If you set "Dissolve Type" to "No Dissolve", you'll
 get one buffer for each individual feature.
 
@@ -759,17 +770,19 @@ analysis.
 ## R
 
 `st_distance()` will return the distance each of the features in 
-another layer. Depending on what you're trying to do, it may be best
-to find the distance to a layer that only includes a single feature. 
+another layer. 
 For a polygon (or multipolygon),
 the distance will the distance to the closest part of the polygon 
 (zero if the polygon contains the feature you're calculating the distance
 from).
 
+Here is how you would calculate the distance from each of a set of points to
+a polygon that is the only feature in its layer.
+
 ```{r}
 pumps <- pumps |>
-  mutate(distance = (st_distance(pumps, aqma))) |>
-  select(distance)
+  mutate(distance_to_aqma = (st_distance(pumps, aqma))) |>
+  select(NAME, distance_to_aqma)
 
 head(pumps) |>
   kable()
@@ -779,9 +792,42 @@ head(pumps) |>
 ggplot() +
   geom_sf(data = aqma) +
   geom_sf(data = pumps,
-          aes(color = as.numeric(distance))) +
+          aes(color = as.numeric(distance_to_aqma))) +
   scale_color_viridis_c(trans = "log",
                         name = "Distance from\nAQMA (meters)",
+                        breaks = breaks <- 100*2^seq(0, 20, by=1),
+                        labels = prettyNum(breaks, big.mark = " ")) +
+  theme_void()
+```
+
+If you want to calculate the distance from a feature to the nearest feature in
+another layer (one that includes more than one feature), you'll need to first
+use the function `st_nearest` to identify the closest feature, then you can
+find the distance to the nearest feature.
+
+```{r}
+pumps <- pumps |>
+  mutate(nearest_ev = st_nearest_feature(pumps, ev_charge)) |>
+  mutate(dist_to_ev = st_distance(pumps, 
+                                  ev_charge[nearest_ev,], 
+                                  by_element = TRUE)) 
+         
+ head(pumps) |>
+  st_drop_geometry() |>
+  select(NAME, nearest_ev, dist_to_ev) |>
+  kable()        
+```
+
+```{r}
+ggplot() +
+    geom_sf(data = ev_charge,
+          shape = 3,
+          size = 1) +
+    geom_sf(data = pumps,
+          size = 3,
+          aes(color = as.numeric(dist_to_ev))) +
+  scale_color_viridis_c(trans = "log",
+                        name = "Bike pumps by\nsistance from\nnearest EV charging\npoint (meters)",
                         breaks = breaks <- 100*2^seq(0, 20, by=1),
                         labels = prettyNum(breaks, big.mark = " ")) +
   theme_void()
@@ -829,3 +875,55 @@ here("week3",
      "arcgis-dist-calc.gif") |>
   knitr::include_graphics()
 ```
+
+# Identifying the polygon containing each point in a layer
+
+If you have a layer of points and a layer of polygons and you want to know which
+polygon each point is in, you can do a spatial join. A spatial joins adds variables
+from one layer to the features on another, based on the relative locations of 
+features (rather than on the values of a variable).
+
+## R
+
+You can do a spatial join in R using the st_join function.
+
+```{r}
+ev_charge <- ev_charge |>
+  st_join(wards)
+```
+
+
+## QGIS
+
+To do a spatial join in QGIS, open the "Vector" menu and select "Data Management
+Tools," then "Join Attributes by Location." Select the layer you want to add
+variables to in the "Join to features in" drop-down. Select the layer you want 
+add variables from in the "By comparing to" drop-down. Click Run.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week3",
+     "examples",
+     "gifs",
+     "q-spatial-join.gif") |>
+  knitr::include_graphics()
+```
+
+## ArcGIS
+
+In ArcGIS, right-click in the contents pane on the layer you want to add
+variables to. Select "Joins and Relates," then "Add Spatial Join."
+
+Under "Target Features," select the layer you want to add variables to. Under
+"Join Features." select the layer you want to add variables from. 
+
+Under Match Option, "Intersect" will return variables from the features in your
+join layer that overlap (intersect) with your target layer.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week3",
+     "examples",
+     "gifs",
+     "arc-spatial-join.gif") |>
+  knitr::include_graphics()
+```
+

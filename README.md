@@ -43,6 +43,10 @@
 * Transforming coordinate reference systems
 * Merging layers and features
 
+**Examples of complete assignments:**
+
+* [Transport and Land Use Planning in Cape Town](https://c-voulgaris.github.io/VIS-2128/week3/examples/CapeTown.pdf)
+
 ## Networks
 
 **Dataset of the week:** [OpenStreetMap (Philippines)](https://c-voulgaris.github.io/VIS-2128/week4/dataset-osm.html)

@@ -57,6 +57,10 @@
 * Loading a routeable street network
 * Generating a walkshed
 
+**Examples of complete assignments:**
+
+* [Schools and Restaurants in Mladá Boleslav](https://c-voulgaris.github.io/VIS-2128/week4/Examples/Mladá-Boleslav.pdf)
+
 ## Field Data
 
 **Dataset of the week:** [Field data](https://c-voulgaris.github.io/VIS-2128/week5/dataset-field.html)

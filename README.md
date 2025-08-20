@@ -17,9 +17,7 @@
 
 **Examples of complete assignments:**
 
-* [Education  in Mahattan](https://c-voulgaris.github.io/VIS-2128/week1/nyc-educ.html)
-* [Railroads and urban areas](https://c-voulgaris.github.io/VIS-2128/week1/rail.pdf)
-
+* [Parks in Mahattan](https://c-voulgaris.github.io/VIS-2128/week1/examples/nyc-parks-2025.pdf)
 
 ## Census Surveys
 
@@ -31,6 +29,17 @@
 * Calculating a new variable value
 * Clipping polygons
 * Generating random points within a polygon
+
+## Field Data
+
+**Dataset of the week:** [Field data](https://c-voulgaris.github.io/VIS-2128/week5/dataset-field.html)
+
+[Skills tutorials](https://c-voulgaris.github.io/VIS-2128/week5/skills.html)
+
+* Recording a GPX trace
+* Extracting locations from geotagged photos
+* Importing a GPX trace
+* Importing points from a csv file
 
 ## Distance
 
@@ -47,6 +56,20 @@
 
 * [Transport and Land Use Planning in Cape Town](https://c-voulgaris.github.io/VIS-2128/week3/examples/CapeTown.pdf)
 
+
+## Historic Maps
+
+**Dataset of the week:** [Historic Maps](https://c-voulgaris.github.io/VIS-2128/week6/dataset-historic.html)
+
+[Skills tutorials (AllMaps)](https://c-voulgaris.github.io/VIS-2128/week6/skills-allmaps.html)
+
+[Skills tutorials (QGIS)](https://c-voulgaris.github.io/VIS-2128/week6/skills-qgis.html)
+
+[Skills tutorials (ArcGIS)](https://c-voulgaris.github.io/VIS-2128/week6/skills-arcgis.html)
+
+* Georeferencing an image
+* Manually creating a new data layer
+
 ## Networks
 
 **Dataset of the week:** [OpenStreetMap (Philippines)](https://c-voulgaris.github.io/VIS-2128/week4/dataset-osm.html)
@@ -61,26 +84,3 @@
 
 * [Schools and Restaurants in Mladá Boleslav](https://c-voulgaris.github.io/VIS-2128/week4/Examples/Mladá-Boleslav.pdf)
 
-## Field Data
-
-**Dataset of the week:** [Field data](https://c-voulgaris.github.io/VIS-2128/week5/dataset-field.html)
-
-[Skills tutorials](https://c-voulgaris.github.io/VIS-2128/week5/skills.html)
-
-* Recording a GPX trace
-* Extracting locations from geotagged photos
-* Importing a GPX trace
-* Importing points from a csv file
-
-## Historic Maps
-
-**Dataset of the week:** [Historic Maps](https://c-voulgaris.github.io/VIS-2128/week6/dataset-historic.html)
-
-[Skills tutorials (AllMaps)](https://c-voulgaris.github.io/VIS-2128/week6/skills-allmaps.html)
-
-[Skills tutorials (QGIS)](https://c-voulgaris.github.io/VIS-2128/week6/skills-qgis.html)
-
-[Skills tutorials (ArcGIS)](https://c-voulgaris.github.io/VIS-2128/week6/skills-arcgis.html)
-
-* Georeferencing an image
-* Manually creating a new data layer

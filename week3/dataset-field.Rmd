@@ -1,6 +1,6 @@
 ---
-title: "Field data (Roxbury) and positionality"
-subtitle: "Dataset of the Week (Week 5)"
+title: "Field data and positionality"
+subtitle: "Dataset of the Week (Week 3)"
 output: 
   rmdformats::readthedown:
     toc_depth: 3

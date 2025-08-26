@@ -1,0 +1,633 @@
+---
+title: "Skills: Network Distances with OpenStreetMap data"
+subtitle: "Week 4"
+output: 
+  rmdformats::readthedown:
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+#knitr::knit_engines$set(python = reticulate::eng_python) 
+```
+
+This page introduces useful skills for calculating network distances
+using network data from OpenStreetMap.
+
+The R examples presented here use the following packages:
+
+```{r, message=FALSE}
+library(sf)
+library(here)
+library(tidyverse)
+library(knitr)
+library(osmextract)
+library(crsuggest)
+library(units)
+```
+
+It also uses the `r5r` package. Prior to loading the `r5r` package, you
+should increase R's memory allocation to Java.
+
+```{r, message=FALSE}
+options(java.parameters = '-Xmx2G')
+
+library(r5r)
+```
+
+OpenStreetMap is has the ambitions of being a complete map of the world, 
+but data in some parts of the world are more complete than in others.
+The examples on this page are for Porto Alegre, Rio Grande do Sul, Brazil.
+
+# Getting OpenStreetMap data
+
+You can download OpenStreetMap data directly from R, QGIS, or 
+ArcGIS. You can also download the data from an interactive, browser-based
+tool.
+
+## Interactive browser-based tools
+
+Two easy-to use extract services are run by BBBike and by the
+Humanitarian OpenStreetMap Team (HOT).
+
+### BBBike
+
+Navigate your web browser to https://extract.bbbike.org/. 
+
+Select a format for your data. If you want to work with your data within
+ArcGIS, select "Shapefile (Esri). If you want to use it to build a routeable
+street network in R (using the `r5r` package), you should select "Protocol buffer (PBF)".
+
+Type in the name of the area you are searching for. This can be anything -- it's 
+mostly just for your own reference. If you click on the "search" link, you can zoom to a
+a selected area on the map, and fill in the name of that area in the text box.
+
+Enter your email address. You will receive and an email when your data are ready
+to download.
+
+Click the "Here" button to display a bounding box on the map. Your data extract
+will include all the OpenStreetMap data within this rectangle. If you are satisfied 
+with the bounding box, click the "Extract" button to start creating your data extract.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week4",
+     "examples",
+     "gifs",
+     "bbbike.gif") |>
+  knitr::include_graphics()
+```
+
+### HOT OSM
+
+Navigate your browser to https://export.hotosm.org/en/v3/
+
+You will need to create a free OpenStreetMap account the first time
+you use this service.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week4",
+     "examples",
+     "gifs",
+     "osm-account.gif") |>
+  knitr::include_graphics()
+```
+
+Once you have an account, you can click the "Start
+Exporting" button to start creating an extract. You may need to 
+log into your account and click a button to allow the 
+export tool to access your OSM account.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week4",
+     "examples",
+     "gifs",
+     "hot-login.gif") |>
+  knitr::include_graphics()
+```
+
+You can use the search bar to define the area for your data extract, 
+or you can use one of the tools on the map pane to define the area
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week4",
+     "examples",
+     "gifs",
+     "hot-area.gif") |>
+  knitr::include_graphics()
+```
+
+The first tab "1 Describe" asks you to describe your extract. This 
+is for your own reference (and for anyone else who might want
+to use the extract you're making, if you publish it).
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week4",
+     "examples",
+     "gifs",
+     "hot-describe.gif") |>
+  knitr::include_graphics()
+```
+
+On the next tab, you can specify a data format. You can select 
+multiple formats. If you want to create a routable network 
+in R, *and* also have a shapefile or geojson file to work
+with, you might choose to create a *.pbf file and another 
+format.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week4",
+     "examples",
+     "gifs",
+     "hot-formats.gif") |>
+  knitr::include_graphics()
+```
+
+On the third tab, you can select the features you want to export
+(filtering them from the full map based on key/value tags). In this example, 
+I'm creating an extract that includes all roads, schools, and hospitals.
+
+Then, on the final tab, you can confirm all the items you've specified
+and click the "Export" button. You'll receive an email (to the address
+associated with your OSM account) when the data are ready to download.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week4",
+     "examples",
+     "gifs",
+     "hot-filter-export.gif") |>
+  knitr::include_graphics()
+```
+
+## R
+
+The `osmextract` and `osmdata` packages will both download load OpenStreetMap
+data directly into R. The examples here use the `osmextract` package because
+it will download data in the `*.pbf` format that the `r5r` package
+requires. `osmdata` downloads data as OSM XML files, but it does 
+give you a little more flexibility in 
+filtering by key/value tags and defining a precise bounding box, so it's 
+a good package to be aware of. Keep in mind that converting from
+\*.osm files to \*.pbf files can be done with a tool like 
+[osmconvert](https://wiki.openstreetmap.org/wiki/Osmconvert).
+
+It will often be helpful to start with a geospatial layer defining the 
+boundary of the area you're interested in. I've downloaded the 
+municipal boundaries for Brazil from https://data.humdata.org/dataset/cod-ab-bra
+and I will load those and filter them to get the Porto Alegre boundaries.
+
+The coordinate reference system is not defined, but the coordinates look
+like latitude/longitude coordinates to me, so I'm assuming its WGS 84.
+
+```{r, results='hide', message=FALSE}
+poa_boundary <- here("week4",
+                 "examples",
+                 "bra_admbnda_adm2_ibge_2020") |>
+  st_read() |>
+  filter(ADM2_PT == "Porto Alegre") |>
+  st_set_crs("WGS84")
+```
+
+To get all the OSM data for a particular place, use the function `oe_get` from 
+the `osmextract` package. It will search for a previously created extract for the
+location you've specified. If it can't find it, it sometimes return a larger area.
+
+For example in this case, I've asked for an extract for Porto Alegre and I can see
+a message that, since there is not pre-defined extract for that city, it's going
+to give me the entire South Region of Brazil (Sul). I can add a `boundary`
+parameter to filter the output to only include the area within the Porto 
+Alegre boundary (actually a rectangular bounding box containing the Porto 
+Alegre boundary). The `oe_get()` function can return points or lines. 
+
+```{r, results='hide'}
+poa_osm_points <- oe_get("Porto Alegre",
+                         layer = "points",
+                         boundary = poa_boundary)
+```
+
+Once I have all the points in Porto Alegre, I can filter that data to 
+find all the schools and all the hospitals. `osmextract` was written primarily
+with transportation applications in mind, so the amenities tags are included
+in a column called `other_tags`. You can search within that column
+for schools and hospitals.
+
+I've already filtered my extract to include only the area within Port
+Alegre's bounding box, but now I'm filtering it further to only include
+points within the municipal boundary.
+
+```{r}
+poa_schools <- poa_osm_points|>
+  filter(str_detect(other_tags, pattern = '"amenity"=>"school"')) |>
+  st_filter(poa_boundary)
+
+poa_hospitals <- poa_osm_points|>
+  filter(str_detect(other_tags, pattern = '"amenity"=>"hospital"')) |>
+  st_filter(poa_boundary)
+```
+
+When I load all the streets, I'll also want to save the pbf file
+in a directory I can use later to create my routeable street network, 
+so I'm speficying a `download_directory`.
+
+I'm going to use `st_intersection` rather than `st_filter` this time to
+get only the portions of roads that fall within the municipal boundary.
+Note that `st_intersection` is editing the geospatial data that I've loaded 
+in R, but isn't editing the *.pbf file I've saved to my `download_directory`.
+
+```{r, results='hide'}
+
+poa_osm_lines <- oe_get("Porto Alegre",
+                         layer = "lines",
+                         boundary = poa_boundary,
+                         download_directory = here("week4",
+                                                   "examples")) |>
+  st_intersection(poa_boundary)
+```
+
+You'll find that most of the line features are roads (features with a highway key), but
+if you want, you can filter out the ones that aren't.
+
+```{r}
+poa_roads <- poa_osm_lines |>
+  filter(!is.na(highway))
+```
+
+Now we can take a quick look at the data we've loaded.
+
+```{r}
+ggplot() +
+  geom_sf(data = poa_boundary) +
+  geom_sf(data = poa_roads,
+          color = "gray") +
+  geom_sf(data = poa_schools,
+          color = "steelblue") +
+  geom_sf(data = poa_hospitals,
+          color = "darkred") +
+  theme_void()
+```
+
+## QGIS
+
+The QUickOSM plugin will let you load OpenStreetMap data directly to QGIS.
+You can access this tool from the Vector menu. If you don't see it there, 
+you may need to enable or install the plugin.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week4",
+     "examples",
+     "gifs",
+     "add-quick-osm.gif") |>
+  knitr::include_graphics()
+```
+
+Once you open the QuickOSM tool, you can specify the key/value tags and the 
+place you want to get data from. Click the "Run Query" button and the layers will
+be added to your map.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week4",
+     "examples",
+     "gifs",
+     "quick-osm.gif") |>
+  knitr::include_graphics()
+```
+
+## ArcGIS
+
+Ricardo Klinger has created a very helpful tool for ArcGIS tool called OSMquery that
+will import OpenStreetMap data for you. You can find the GitHub repository
+for this tool here: https://github.com/riccardoklinger/OSMquery
+
+Download the tool by navigating to its repository and downloading the entire thing
+as a zip file.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week4",
+     "examples",
+     "gifs",
+     "download-osoquery.gif") |>
+  knitr::include_graphics()
+```
+
+Save the zipped file in or near your ArcGIS project directory, and unzip it.
+
+From ArcGIS Pro, open the catalog pane. Right click on "Toolboxes", and select
+"Add Toolbox." Navigate to the file you unzipped and select the file called 
+"OSMQuery.pyt".
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week4",
+     "examples",
+     "gifs",
+     "add-osmquery.gif") |>
+  knitr::include_graphics()
+```
+
+The new toolbox you've added includes two scripts: "Get OSM Data" and "Get OSM Data (Expert Tool)".
+Select the "Get OSM Data" script. You'll be able so specify one key (e.g. highway or amenity) and
+one or more value tags for that key. You can specify the area you want data from by specifying
+a bounding box or by entering the name of a place.
+
+After you click "Run" the tool may run for several minutes (I've edited the waiting time
+out of the demonstration below) and then it will add layers for any points, lines, and
+polygons that match the parameters you've specified.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week4",
+     "examples",
+     "gifs",
+     "run-osmquery.gif") |>
+  knitr::include_graphics()
+```
+
+# Creating a routable street network
+
+Once you've a layer of roads from OpenStreetMap, you'll need to 
+create a routeable network that can be used to calculate paths
+between pairs of points.
+
+## R
+
+We'll be calculating paths in R using the `r5r` package. You'll
+need to have a folder in your RStudio project that includes
+a *.pbf file that includes all the roads in your study area.
+
+Then you'll pass the location of that directory into the `setup_r5()`
+function. This will create a couple new files in your directory,
+including one called
+network.dat, which the `r5r` package will use to calculate network 
+distances. 
+
+```{r, message=FALSE, warning=FALSE}
+my_core <- here("week4",
+                "examples",
+                "poa-network") |>
+  setup_r5()
+```
+
+## QGIS
+
+In QGIS, you can use a plugin called "ORS Tools" to calculate network distances
+this will calculate distances directly from the 
+[openrouteservice](https://openrouteservice.org/){target="_blank"} API (which
+is based on OpenStreetMap data), so there is no need to create your own network within QGIS.
+
+Install the "ORS Tools" plugin from the QGIS plugin manager. Once it's installed, 
+you'll find it under the "Web" menu in QGIS.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week4",
+     "examples",
+     "gifs",
+     "web-menu.png") |>
+  knitr::include_graphics()
+```
+
+You will need to set up a free account and request an API key for openrouteservice.
+Navigate your browser to https://openrouteservice.org/dev/#/login and click the 
+"Sign Up" button. You'll need to create a username, provide your name and an email
+address, and accept the terms of service. 
+
+Once you've created your account and logged in, you'll see a screen with a "Profile"
+tab and a "Tokens" tab. Go to the "Tokens" tab and request a token. Once you've generated
+the token, you'll see it listed on your "Tokens" tab. Copy it to your clipboard.
+
+In QGIS, select "Provider Settings" from the ORS Tools menu and paste your API
+token into the API Key text box.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week4",
+     "examples",
+     "gifs",
+     "ors-api-key.gif") |>
+  knitr::include_graphics()
+```
+
+## ArcGIS
+
+Creating a network from OpenStreetMap data in ArcGIS Pro gets pretty complicated, 
+but ArcGIS Online has its own global, routeable street network that ArcGIS Pro
+will use by default. This is generally going to be fine for most purposes (and may
+be better in some places than OpenStreetMap data).
+
+# Generating isochrones
+
+An isochrone is a polygon with edges defined by the area you can reach 
+within a particular length of time. 
+
+## R
+
+The `r5r` package doesn't generate isochrones directly, but you can create them
+by calculating the travel time between a set of points defining locations of interest
+and a each cell in a grid that covers your entire study area. Then you can combine
+cells that are reachable within your defined threshold.
+
+### Generate a grid
+
+You can use the `st_make_grid()` function to create a grid that covers
+the extent of your study area. 
+
+You'll want to create the grid using a projected coordinate system 
+by casting the study area boundary to the first suggested CRS from 
+the `crsuggest` package, and then immediately transform it to WGS 84.
+
+By default, `st_make_grid` creates a square grid, and you can create
+a hex grid by setting `square = FALSE`. I'm setting the size of the 
+grid cells to 500 meters. This is probably a coarser grid than what
+you would want for a walkshed, but I'm setting it this big so that
+you can see the individual grid cells in this demonstration.
+
+I also need to make this layer into an `sf` data frame with a column
+called `id` (this is requirement for the `r5r` package).
+
+```{r, message=FALSE}
+proj_crs <- suggest_top_crs(poa_boundary)
+
+hex_grid <- st_make_grid(st_transform(poa_boundary, proj_crs),
+                         cellsize = set_units(500, m),
+                         square = FALSE) |>
+  st_transform("WGS84") |>
+  st_as_sf()
+
+hex_grid <- hex_grid |>
+  mutate(id = seq(1, nrow(hex_grid), by=1))
+```
+
+Here's what the resulting grid looks like:
+
+```{r}
+ggplot() +
+  geom_sf(data = hex_grid) +
+  geom_sf(data = poa_boundary, fill = NA, color = "blue") +
+  theme_void()
+```
+
+### Calculate a travel time matrix
+
+The `r5r` package requires all input layers to have a column 
+called `id` to uniquely identify each feature. So I'll add that
+to my layer of school points.
+
+```{r}
+poa_schools <- poa_schools |>
+  mutate(id = seq(1, nrow(poa_schools), by=1))
+```
+
+I want to calculate the travel time from each school to the
+centroid of each cell in my grid, so I'll create a set of 
+grid centroids.
+
+```{r, warning=FALSE}
+grid_pts <- hex_grid |>
+  st_centroid()
+```
+Now I can use the `travel_time_matrix` function from `r5r` to 
+calculate the distance from every school to every point on my grid. Once you've
+finished this step, you should run `stop_r5` to close down the Java
+program that's running in the background.
+
+```{r, warning=FALSE, message=FALSE}
+travel_times <- travel_time_matrix(my_core,
+                                   origins = poa_schools,
+                                   destinations = grid_pts,
+                                   mode = "WALK")
+
+stop_r5()
+```
+
+The result will be a table with three columns:
+
+* `from_id`: The ID for the origin (schools)
+* `to_id`: The ID for the destination (a point on the grid)
+* `travel_time_p50` the estimated travel time from the origin 
+to the destination.
+
+### Filter based on threshold travel times
+
+We can filter out the rows with travel times greater than the thresholds
+we want for our isochrones (let's say 20 minutes).
+
+```{r}
+travel_times <- travel_times |>
+  filter(travel_time_p50 < 21) 
+```
+
+Now we can filter our grid to only include the cells with 
+IDs that remain in our travel time table.
+
+```{r}
+hex_grid_20min <- hex_grid |>
+  filter(id %in% as.numeric(travel_times$to_id))
+```
+
+Here is the part of the hex grid that is within
+20 minutes of a school.
+
+```{r}
+ggplot() +
+  geom_sf(data = hex_grid_20min) +
+  geom_sf(data = poa_schools) +
+  theme_void()
+```
+
+### Combine grid cells into isochrones
+
+Finally, we can combine those grid cells into a single 
+isochrone.
+
+```{r}
+iso_schools <- hex_grid_20min |>
+  st_union()
+
+ggplot() +
+  geom_sf(data = iso_schools) +
+  geom_sf(data = poa_schools) +
+  theme_void()
+```
+
+
+## QGIS
+
+Open the OSR Tools dialog. From the Batch Jobs tab, click the
+"Isochrones from Layer" button. Set the travel mode to 
+"foot-walking" and the set the threshold travel time in the 
+box that says "Comma-separated ranges."
+
+Click run. The tool might run for several minutes (edited out of the
+demonstration below), and may return a lot of "OverQueryLimit" messages,
+which you can ignore.
+
+This will generate a separate polygon for each point feature.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week4",
+     "examples",
+     "gifs",
+     "generate-isos-qgis.gif") |>
+  knitr::include_graphics()
+```
+
+You can use the Dissolve geoprocessing tool to dissolve these into a 
+single multipolygon.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week4",
+     "examples",
+     "gifs",
+     "dissolve-isos.gif") |>
+  knitr::include_graphics()
+```
+
+## ArcGIS
+
+ArcGIS Pro refers to an isochrone as a service area. 
+
+Click the Network Analysis button on the Analysis ribbon and
+select "Service Area". You'll notice that there is also an option
+to set the Network Data Source to something other than the one
+from ArcGIS Online, if you have one (for example, if you've taken
+the time to create one from OpenStreetMap data, which we won't be
+demonstrating here).
+
+This will create an empty service area layer (you'll see the service
+area features in your contents pane, but with nothing displayed on the
+map).
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week4",
+     "examples",
+     "gifs",
+     "service-area-1.gif") |>
+  knitr::include_graphics()
+```
+
+Add the layer of points you want isochrones for as "Facilities" in your 
+service area layer. Go to the "Service Area Layer" ribbon and click the 
+"Import Facilities" button. Select the point layer you're using from 
+the "Input Locations" dropdown menu and click "Apply" or "Okay."
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week4",
+     "examples",
+     "gifs",
+     "import-facilities.gif") |>
+  knitr::include_graphics()
+```
+
+Now, from the Service Area Layer ribbon, you can also specify the mode of transportation
+your isochrones are using, the direction of travel (which shouldn't matter for walking, 
+but can matter for motorized modes), the threshold travel time, 
+and the time of day (again, shouldn't matter for walking).
+You can also specify whether you want the isochrones to dissolve into one another or to 
+be a separate polygon for each point. Once you're satisfied with these settings, you can
+click "Run".
+
+You will see a set of polygons added to your Service Area layer.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week4",
+     "examples",
+     "gifs",
+     "generate-isos.gif") |>
+  knitr::include_graphics()
+```
+

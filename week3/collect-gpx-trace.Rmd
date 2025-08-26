@@ -1,0 +1,267 @@
+---
+title: "Collecting a GPX trace"
+output: 
+  rmdformats::readthedown:
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+#knitr::knit_engines$set(python = reticulate::eng_python) 
+```
+
+
+```{r, message=FALSE, results='hide', echo=FALSE}
+library(here)
+library(sf)
+library(tidyverse)
+library(ggspatial)
+library(exifr)
+```
+
+This page demonstrates how to collect a GPX trace using the OsmAnd app on your 
+phone.
+
+OsmAnd ([iOS](https://apps.apple.com/us/app/osmand-maps-travel-navigate/id934850257) and [Android](https://play.google.com/store/apps/details?id=net.osmand&hl=en_US&gl=US)) is a navigation app build on OpenStreetMap that also
+will record GPX traces if you enable the "Trip recording" plugin.
+
+The demonstration below uses the OsmAnd app for iOS (with some examples from an Android
+device when things look different).
+
+When you first install and open the app, you'll see a screen like this:
+
+```{r, echo=FALSE, message=FALSE, out.width = '30%'}
+here("week5",
+     "screenshots",
+     "IMG_0489.PNG") |>
+  knitr::include_graphics()
+```
+
+The first screen will ask you to download a map that corresponds with your 
+current location. This is to allow the app to work offline (without an 
+internet connection). You can skip downloading the map and still record 
+GPS locations, but the app won't show you a basemap in the background.
+
+```{r, echo=FALSE, message=FALSE, out.width = '30%'}
+here("week5",
+     "screenshots",
+     "IMG_0490.PNG") |>
+  knitr::include_graphics()
+```
+
+If your phone asks apps not to track your location by default, the app might guess the wrong
+map to download for your current location. In this case, you can tap "Skip Download" on the
+bottom left corner of the screen.
+
+```{r, echo=FALSE, message=FALSE, out.width = '30%'}
+here("week5",
+     "screenshots",
+     "image000000-ct.png") |>
+  knitr::include_graphics()
+```
+
+Then you can search for the map you want to download.
+
+```{r, echo=FALSE, message=FALSE, out.width = '30%'}
+here("week5",
+     "screenshots",
+     "image000000 (1).png") |>
+  knitr::include_graphics()
+```
+
+Once you've downloaded a basemap, the download button becomes a "Go to the map"
+button. Tap that button.
+
+```{r, echo=FALSE, message=FALSE, out.width = '30%'}
+here("week5",
+     "screenshots",
+     "IMG_0491.PNG") |>
+  knitr::include_graphics()
+```
+
+You'll see a map of your current surroundings. On the botton right corner of the map, there
+will be a little crosshair icon. If you tap that, you'll get a message asking you to give
+the app permission to use your location. 
+
+```{r, echo=FALSE, message=FALSE, out.width = '30%'}
+here("week5",
+     "screenshots",
+     "initial-map.jpeg") |>
+  knitr::include_graphics()
+```
+
+Choose "Allow While Using App" if you
+will be keeping the app open the whole time you're collecting data. Otherwise, you want to set it
+to track your location all the time.
+
+```{r, echo=FALSE, message=FALSE, out.width = '30%'}
+here("week5",
+     "screenshots",
+     "IMG_0503.PNG") |>
+  knitr::include_graphics()
+```
+
+Tap the little hamburger button on the bottom left corner of the map to open up the side menu. 
+
+```{r, echo=FALSE, message=FALSE, out.width = '30%'}
+here("week5",
+     "screenshots",
+     "IMG_0492.PNG") |>
+  knitr::include_graphics()
+```
+
+Tap "My places". Select the "Tracks" icon on the bottom right and tap the banner that says,
+"Please activate Track recording addon to record and save your tracks."
+
+```{r, echo=FALSE, message=FALSE, out.width = '30%'}
+here("week5",
+     "screenshots",
+     "IMG_0494.PNG") |>
+  knitr::include_graphics()
+```
+
+
+On an Android phone, you may need to add this plugin from the Plugin manager
+(find it towards the bottom of the side menu, right before settings).
+
+On an iPhone, you'll see a list of plugins with white checkboxes next to them. 
+
+```{r, echo=FALSE, message=FALSE, out.width = '30%'}
+here("week5",
+     "screenshots",
+     "unchecked-trip-rec.jpeg") |>
+  knitr::include_graphics()
+```
+
+On an Android, it will look like this:
+
+```{r, echo=FALSE, message=FALSE, out.width = '30%'}
+here("week5",
+     "screenshots",
+     "image000000 (2).png") |>
+  knitr::include_graphics()
+```
+
+Tap the box or icon by "Trip Recording." It will show you a message saying you've added the plugin. Click OK.
+
+```{r, echo=FALSE, message=FALSE, out.width = '30%'}
+here("week5",
+     "screenshots",
+     "IMG_0495.PNG") |>
+  knitr::include_graphics()
+```
+
+Now the checkbox or icon will be highlighted in orange. Tap on "< My Tracks". 
+
+```{r, echo=FALSE, message=FALSE, out.width = '30%'}
+here("week5",
+     "screenshots",
+     "IMG_0496.PNG") |>
+  knitr::include_graphics()
+```
+
+You'll see a banner that says "Currently recording track" with a gray save icon and
+a red dot. Tap the red dot. 
+
+```{r, echo=FALSE, message=FALSE, out.width = '30%'}
+here("week5",
+     "screenshots",
+     "IMG_0498.PNG") |>
+  knitr::include_graphics()
+```
+
+
+On an Android device, the "Start Recording" button is somewhat more 
+clearly labeled.
+
+
+```{r, echo=FALSE, message=FALSE, out.width = '30%'}
+here("week5",
+     "screenshots",
+     "image000000[3].PNG") |>
+  knitr::include_graphics()
+```
+
+
+A dialog will pop up where, if you want, you can 
+adjust the recording interval. By default, it will record your location every five 
+seconds. Setting it to a shorter interval (e.g. every one second) will improve the
+precision of your GPS trace.
+
+Click OK.
+
+```{r, echo=FALSE, message=FALSE, out.width = '30%'}
+here("week5",
+     "screenshots",
+     "IMG_0497.PNG") |>
+  knitr::include_graphics()
+```
+
+Now you should see a black square instead of a red circle. The app is currently recording your
+location. Start walking along the path you want to record. When you have finished your path, 
+tap the black square to stop recording. Then tap the save icon.
+
+```{r, echo=FALSE, message=FALSE, out.width = '30%'}
+here("week5",
+     "screenshots",
+     "IMG_0505.PNG") |>
+  knitr::include_graphics()
+```
+
+On an Android device the start, stop, and save icons are more clearly labeled.
+
+```{r, echo=FALSE, message=FALSE, out.width = '30%'}
+here("week5",
+     "screenshots",
+     "image000000.PNG") |>
+  knitr::include_graphics()
+```
+
+
+Tap the "Rec" folder, and you'll see your track listed with a file name
+indicating the current date and time.
+
+```{r, echo=FALSE, message=FALSE, out.width = '30%'}
+here("week5",
+     "screenshots",
+     "IMG_0499.PNG") |>
+  knitr::include_graphics()
+```
+
+Tap the name of your track and it will open in a map.
+
+```{r, echo=FALSE, message=FALSE, out.width = '30%'}
+here("week5",
+     "screenshots",
+     "IMG_0500.PNG") |>
+  knitr::include_graphics()
+```
+
+Tap the share icon at the bottom of the screen and email the GPX file to yourself.
+
+```{r, echo=FALSE, message=FALSE, out.width = '30%'}
+here("week5",
+     "screenshots",
+     "IMG_0501.PNG") |>
+  knitr::include_graphics()
+```
+
+To share the file from an Android device, you'll need to click the "Options"
+button on the bottom left corner of your screen.
+
+```{r, echo=FALSE, message=FALSE, out.width = '30%'}
+here("week5",
+     "screenshots",
+     "image000000[1].png") |>
+  knitr::include_graphics()
+```
+
+Then click the Share item on the side menu.
+
+```{r, echo=FALSE, message=FALSE, out.width = '30%'}
+here("week5",
+     "screenshots",
+     "image000000[2].png") |>
+  knitr::include_graphics()
+```
+

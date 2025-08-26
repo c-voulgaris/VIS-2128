@@ -1,0 +1,104 @@
+---
+title: "Skills: Digitizing historic map data"
+subtitle: "Week 6"
+output: 
+  rmdformats::readthedown:
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+#knitr::knit_engines$set(python = reticulate::eng_python) 
+```
+
+This page introduces useful skills for extracting spatial data from 
+historic maps
+
+# Creating a georeferenced raster layer from an image
+
+If you have an image file from a scanned map (for example, a historic
+map, or one you or a collaborator drew/annotated by hand), you can
+import it into GIS software and georeference it, which associates each
+pixel in your image with a geospatial location.
+
+In QGIS, you may want to start by loading a basemap that you can
+use to identify locations on the map you're georeferencing. You can
+add a basemap based on OpenStreetMap data by going to "Add Layer" from
+the "Layer" menu and selecting "Add XYZ layer." In the dialog that 
+comes up, you'll be able to select "OpenStreetMap" from the 
+dropdown menu. Then click the "Add" button
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+library(here)
+
+here("week6",
+     "Examples",
+     "gifs",
+     "qgis-add-osm-base.gif") |>
+  knitr::include_graphics()
+```
+
+Now you can georeference your image. Select "Georeferencer..."
+from the layer menu. 
+
+In the georeferencer dialog, click the "Open Raster" button to load
+your image file. You'll need to select at least three points on the
+image to georeference it. Ideally, there will be spaced far apart
+from one another (e.g. near the sides of the image) and will form 
+a triangle (rather than being along a straight line).
+
+Click the first point on your image. A box will pop up asking you
+for the coordinates of the point you've selected. Click the 
+"From Map Canvas" button and find the corresponding location on
+in your map window. Click on the location and click okay.
+
+Repeat this process for at least two more points. When you are 
+satisfied with your control points, click the Settings button. 
+Enter a filename for the georeferenced image and make sure the 
+"Load in project when done" button is checked. Click Okay.
+
+Click the "Start Georeferencing" button. When the process is finished, 
+you can close the georeferencer dialog box. You'll be prompted to save 
+control points, which isn't necessary.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week6",
+     "Examples",
+     "gifs",
+     "qgis-georef.gif") |>
+  knitr::include_graphics()
+```
+
+# Manually creating a layer of data
+
+Once you've loaded a georeferenced layer, you might want to features
+to create a vector layer.
+
+In QGIS, you'll want to start by creating an empty shapefile. 
+Go to Layer > Create Layer > New Shapefile Layer...
+
+Select a filename and a geometry type, then click okay. The new, 
+empty layer will be added to your map.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week6",
+     "Examples",
+     "gifs",
+     "qgis-make-shp.gif") |>
+  knitr::include_graphics()
+```
+
+Now you'll want to add features to your new layer. Right-click the 
+layer you want to add to (probably the empty layer you just
+created) and select "Toggle Editing". Then click the "Add points"
+button and click on map where you want your new points to be. When
+you are finished, save your edits and turn off the editing mode.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week6",
+     "Examples",
+     "gifs",
+     "qgis-add-points.gif") |>
+  knitr::include_graphics()
+```
+

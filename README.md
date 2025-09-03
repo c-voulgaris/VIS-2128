@@ -30,6 +30,10 @@
 * Clipping polygons
 * Generating random points within a polygon
 
+**Examples of complete assignments:**
+
+* [Students in College Station](https://c-voulgaris.github.io/VIS-2128/week2/examples/a&m-2025.pdf)
+
 ## Field Data
 
 **Dataset of the week:** [Field data](https://c-voulgaris.github.io/VIS-2128/week3/dataset-field.html)

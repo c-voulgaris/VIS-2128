@@ -118,12 +118,17 @@ Estimated characteristics for the entire population are calculated
 based on the responses from the sample of the population that took
 the survey. Because these are estimates from a sample rather than 
 counts of the full population, there is a margin of error associated
-with them. 
+with them. The margin of error the census reports is for a 90-percent
+confidence level.
 
 Data are available as one-year estimates (all responses collected 
 in a given year) and as five-year estimates (all responses collected
 over a five year period). Five-year estimates have larger sample sizes, 
 resulting in smaller margins of error.
+
+Here's a little video that explains more about margins of error:
+
+https://www.census.gov/data/academy/data-gems/2024/what-is-the-margin-of-error.html.
 
 # Data tables
 
@@ -164,11 +169,14 @@ kable(CDs_MS, format.args = list(big.mark = ","))
 ```
 
 Here is Table B05012 from the 2010 American Community Survey (five-year estimates) for 
-Congressional Districts in Utah. It includes an estimate and a margin of error for each of three variables:
+Congressional Districts in Utah. It includes an estimate and a margin of error 
+(for 90-percent confidence) for each of three variables:
 
 * The total population
 * The total native-born population
 * The total foreign-born population
+
+
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 vars <- c("B05012_001 (Total population)" = "B05012_001",

@@ -18,6 +18,10 @@
 **Examples of complete assignments:**
 
 * [Parks in Mahattan](https://c-voulgaris.github.io/VIS-2128/week1/examples/nyc-parks-2025.pdf)
+* [Military in Middlesex](https://c-voulgaris.github.io/VIS-2128/week1/examples/example1-2025.pdf)
+* [Water in Val Verde](https://c-voulgaris.github.io/VIS-2128/week1/examples/example2-2025.pdf)
+* [Hennepin Transportation](https://c-voulgaris.github.io/VIS-2128/week1/examples/example3-2025.pdf)
+
 
 ## Census Surveys
 

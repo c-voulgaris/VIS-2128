@@ -51,7 +51,7 @@
 
 **Examples of complete assignments:**
 
-* [Kampala Taxi ROute](https://c-voulgaris.github.io/VIS-2128/week3/examples/taxis.pdf)
+* [Kampala Taxi Route](https://c-voulgaris.github.io/VIS-2128/week3/examples/taxis.pdf)
 
 ## Distance
 

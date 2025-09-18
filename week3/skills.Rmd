@@ -24,9 +24,9 @@ library(sf)
 library(tidyverse)
 library(ggspatial)
 library(lwgeom)
-library(maptiles)
-library(tidyterra)
 library(crsuggest)
+library(knitr)
+library(units)
 ```
 
 # Collecting GPS traces
@@ -150,6 +150,13 @@ waypoints <- here("week3",
   st_read(layer = "waypoints")
 ```
 
+```{r, echo=FALSE, results='hide', warning=FALSE}
+waypoints <- waypoints |>
+  mutate(name = as.numeric(name)) |>
+  filter(!is.na(name)) 
+```
+
+
 And here are track and waypoints displayed on a map.
 
 ```{r}
@@ -243,22 +250,532 @@ waypoints <- waypoints |>
 
 ```
 
-The st_split function can split a line into components on either side of (one)
-point. Here is how I would get the track on either side of a the third of my waypoints.
+The `st_split` function can split a line into components on either side of (one)
+point. It returns a single feature with a geometry collection as its geometry. 
+You need to use `st_collection_extract` to get each segment into its own 
+row of your dataset.
+
+Here is how I would get the track on either side of a the second waypoint 
+(the first was when the surveyor initially boarded the bus, so I wouldn't 
+need to split the route there).
+
+I am using the `mutate()` function to create a new variable (called `which`) 
+that gives a unique name to the two segments.
 
 ```{r}
 
-line_parts <- st_split(path_line, waypoints[3,])
+line_parts <- st_split(path_line, waypoints[2,])|>
+  st_collection_extract("LINESTRING") |>
+  mutate(which = c("A", "B"))
+
+```
+
+Now I can plot those two segments, differentiating them by color.
+
+```{r}
+ggplot() +
+  geom_sf(data = line_parts,
+          aes(color = which)) +
+  theme_void()
+```
+
+I can see that the first segment is the one that got labeled as B and the rest
+of the route is A (I know that this route was from west to east). 
+Now I would want to split the A section into the parts before 
+and after the third point, and continue on through all the waypoints. This could
+be tedious, but I can write a little loop that will repeat the same set of 
+actions over and over until I've worked my way across the line.
+
+First, I'll start a layer called segments that includes the segment I've
+already successfully split off, and I'll add to that as I work my way down the 
+line. I'll make a new layer that's includes the rest of the line that I want to 
+split up.
+
+```{r}
+segments <- line_parts |>
+  filter(which == "B")
+
+rest_of_line <- line_parts |>
+  filter(which == "A")
+```
+
+Now here's a loop that works its way through the rest of the waypoints.
+
+```{r}
+
+# repeat the same thing for waypoints 3 through 12
+for (i in 3:12) {
+  
+  # split the line into parts before and after this waypoint
+  line_parts <- st_split(rest_of_line, waypoints[i,])|>
+    st_collection_extract("LINESTRING") |>
+    mutate(which = c("A", "B"))
+  
+  # Check to see which segment (A or B) touches the last segment we split off.
+  next_segment_check <- st_intersects(line_parts, 
+                                      segments[nrow(segments),],
+                                      sparse = FALSE)
+ 
+  # the side that touches the last segment is the next segment
+  next_segment <- line_parts[next_segment_check,]
+   
+  # add it to the layer of segments
+  segments <- rbind(segments, next_segment)
+  
+  # the other side is the rest of the line
+  rest_of_line <- line_parts[!next_segment_check,]
+}
 
 ```
 
 
-More to come...
+What's remaining as the rest of the line will be my last segment. And now I can 
+give all the segments unique labels (numbering them one through twelve).
+
+```{r}
+
+segments <- rbind(segments, rest_of_line) |>
+  mutate(which = 1:12)
+
+```
+
+And now I can see all these separate segments
+
+```{r}
+
+ggplot() +
+  geom_sf(data = segments,
+          aes(color = as.character(which))) +
+  theme_void()
+
+```
 
 ## QGIS
 
-Coming soon...
+To split a line by the points along it, you can install the Split Lines By
+Points plugin.
+
+```{r, echo=FALSE, message=FALSE}
+here("week3",
+     "examples",
+     "gifs",
+     "qgis-split-plugin.gif") |>
+  knitr::include_graphics()
+```
+
+You can access the plugin by opening the Toolbox from the Processing menu and
+selecting it from there. This will open a dialog where you can specify the line
+layer you want to split and teh point layer you want to split it by. You can
+(and should) also specify a file you want to save the resulting layer of
+segments to. Once you run the tool, it will show up in your table of contents.
+
+It will look like the original line layer, but if you open the attribute table, 
+you can see that it's a set of distinct features.
+
+```{r, echo=FALSE, message=FALSE}
+here("week3",
+     "examples",
+     "gifs",
+     "qgis-split-run.gif") |>
+  knitr::include_graphics()
+```
 
 ## ArcGIS
 
-Coming soon...
+In ArcGIS, you can use the Split Line at Point tool to split a line layer based on a layer of points.
+
+```{r, echo=FALSE, message=FALSE}
+here("week3",
+     "examples",
+     "gifs",
+     "arcgis-split.gif") |>
+  knitr::include_graphics()
+```
+
+# Create line from points
+
+As an alternative to splitting the track line into segments, you could also
+create a set of lines from the trackpoints that were collected between the times
+of your waypoints.
+
+## R
+
+I'll start by loading the track points, and keeping only the variables I need:
+time and speed
+
+```{r}
+
+track_points <- here("week3",
+                     "examples",
+                     "20250904-154314 - Mutungo biina church route UAZ 565H.gpx") |>
+  st_read(layer = "track_points") |>
+  select(time, speed)
+
+```
+
+I'm going to filter those points to only include the times when the vehicle 
+was moving.
+
+```{r}
+
+track_points <- track_points |>
+  filter(speed > 0)
+
+```
+
+
+Here's a quick plot of the track points and waypoints. For the track points, I'm setting the alpha value to 0.1 to 
+make them quite transparent.
+
+```{r}
+
+ggplot(track_points) +
+  geom_sf(alpha = 0.1) +
+  geom_sf(data = waypoints,
+          color = "red",
+          size = 3) +
+  theme_void()
+
+```
+
+My waypoints layer has 20 variables, but the only ones I really need are `time`
+and `name` (where my annotations are saved). So I will use the `select()`
+function to remove all the columns except just those two (I don't need to 
+tell it to keep the geometry column that stores the lat-lon coordinates - it
+always will).
+
+```{r}
+
+waypoints <- waypoints |>
+  select(time, name)
+
+```
+
+So here's the table of my waypoints (the `kable()` function just makes it 
+display pretty).
+
+```{r}
+
+waypoints |>
+  kable()
+
+```
+
+To get the set of track points between the first two waypoints, I would want all 
+the track points with an earlier time than the second waypoint.
+
+```{r}
+seg_1_pts <- track_points |>
+  filter(time < waypoints$time[2])
+```
+
+
+Let's see what that looks like.
+
+```{r}
+
+ggplot(seg_1_pts) + 
+  geom_sf(alpha = 0.1) +
+  geom_sf(data = waypoints,
+          color = "red",
+          size = 3) +
+  theme_void()
+
+```
+
+Then we'll join them into a line (it's a little tricksy, where we cobble together
+a couple functions). 
+
+```{r}
+
+seg_1_line <- st_coordinates(seg_1_pts) |>
+  st_linestring() |>
+  st_sfc(crs = st_crs(track_points)) |>
+  st_as_sf() 
+
+ggplot(seg_1_line) + 
+  geom_sf() +
+  geom_sf(data = waypoints,
+          color = "red",
+          size = 3) +
+  theme_void()
+
+```
+
+
+## QGIS
+
+TBD
+
+## ArcGIS
+
+TBD
+
+# Calculate line lenth
+
+You might want to be able to say something about the length of your track
+(or its respective segments).
+
+## R
+
+In R, you can use the st_length function to calculate length.
+
+```{r}
+
+segments <- segments |>
+  mutate(length = st_length(segments)) |>
+  mutate(length = set_units(length, "km")) |>
+  select(which, length)
+
+kable(segments)
+
+```
+
+
+## QGIS
+
+In QGIS, you can use the Add geometry attributes tool to calculate length.
+You should set your project to a projected coordinate reference system first, 
+and be sure you know what units the CRS is in.
+
+```{r, echo=FALSE, message=FALSE}
+here("week3",
+     "examples",
+     "gifs",
+     "qgis-calc-length.gif") |>
+  knitr::include_graphics()
+```
+
+## ArcGIS
+
+
+
+# Calculate a cumulative sum
+
+There might be attributes of your waypoints that you want to apply to associated
+line segments.
+
+In this example, my first waypoint was when the surveyor first boarded the bus, 
+and it's annotated with the number of people who were on the bus when they boarded. 
+The subsequent waypoints are annotated with the number of people getting
+on (a positive number) or off (a negative number). I can use this to calculate
+the total number of passengers on board for the segment following the point
+by taking the cumulative sum of the column.
+
+## R
+
+My waypoints layer has 20 variables, but the only ones I really need are `time`
+and `name` (where my annotations are saved). So I will use the `select()`
+function to remove all the columns except just those two (I don't need to 
+tell it to keep the geometry column that stores the lat-lon coordinates - it
+always will).
+
+```{r}
+
+waypoints <- waypoints |>
+  select(time, name)
+
+```
+
+So here's the table of my waypoints (the `kable()` function just makes it 
+display pretty).
+
+```{r}
+
+waypoints |>
+  kable()
+
+```
+
+Now I can create a new column with the running total of passengers using the
+`cumsum()` (cumulative sum) function.
+
+```{r}
+
+waypoints <- waypoints |>
+  mutate(num_on_board = cumsum(name))
+
+waypoints |>
+  kable()
+
+```
+
+## QGIS
+
+In QGIS, open the attribute table, start an editing session, and tap the 
+field calculator button.
+
+Check the box for "Create a new field" and enter a name for your new field.
+Make sure the data type is numeric.
+
+For the expression, type:
+
+`with_variable (`
+`    'time',`
+`    time,`
+`    sum( name, filter:=time<=@time)`
+`)`
+
+This will create a running total in the order of your time variable.
+
+```{r, echo=FALSE, message=FALSE}
+here("week3",
+     "examples",
+     "gifs",
+     "qgis-cumsum.gif") |>
+  knitr::include_graphics()
+```
+
+## ArcGIS
+
+In ArcGIS, you will need to start by creating a new for the cumulative sum.
+Make sure you set the field type to "Long" (for integers) or "Double" (for 
+numbers with decimal places - which you don't need, but will still work).
+
+```{r, echo=FALSE, message=FALSE}
+here("week3",
+     "examples",
+     "gifs",
+     "arcgis-new-field.gif") |>
+  knitr::include_graphics()
+```
+
+
+Then, you'll need to create a function to calculate the running total. Open the
+Calculate Field tool. Specify Input Table as the attribute table (in this example, it's the attributes table for my waypoints) and the name of the field
+you just created that you want to calculate values for. 
+
+In the box under "[name of your new field] =", type the name you're going to 
+give your function (in this example, I use "runningTotal"), with the name 
+of the variable you want to apply it to (this will probably be "Name" if you
+are using your waypoint annotations) inside parentheses and exclamation points.
+
+In the code block, paste the following lines: 
+
+```{r, eval=FALSE}
+total = 0
+def runningTotal(value):
+    global total
+    total += value
+    return total
+```
+
+    
+This starts by setting a variable to the value of zero. Then it defines a
+function (use the same name you used in the text box above it), and it 
+sequentially adds the value from the other column to calculate a running 
+total.
+
+Once you've done that, click Run, and confirm that your column has been 
+filled in with a running total.
+
+```{r, echo=FALSE, message=FALSE}
+here("week3",
+     "examples",
+     "gifs",
+     "arcgis-make-sum-tool.gif") |>
+  knitr::include_graphics()
+```
+
+# Assign point attributes to a line layer
+
+Once you've calculated the passenger load that would follow each point, you
+might need to transfer that variable to your line segments.
+
+If you know that your waypoints and line segments are in the same order (i.e.
+in order by time), this is called a positional join.
+
+## R
+
+In R, you can create a drop the geometry from the points layer and use 
+`cbind()` to attach those columns to the line segments layer.
+
+```{r}
+ 
+point_data <- waypoints |>
+  st_drop_geometry()
+
+segments <- segments |>
+  cbind(point_data)
+
+segments |>
+  kable()
+
+```
+
+
+## QGIS
+
+QGIS doesn't do positional joins: you need to have a common column to match
+values on. If both of your layers are in right order, you can just add a column
+of sequential values and use that for the join. 
+
+To add a column of sequential values to layer, select Toolbox from the 
+Processing menu and select "Add autoincremental field". Select the input layer
+you want to use and the number you want to start at (probably 1, but it doesn't
+matter as long as you make the same choice for both layers). Then click
+Run. This will create a new scratch layer with this additional field. Before
+you move on (and certainly befor you close your project), you should make it
+permanent.
+
+```{r, echo=FALSE, message=FALSE}
+here("week3",
+     "examples",
+     "gifs",
+     "qgis-increment.gif") |>
+  knitr::include_graphics()
+```
+
+Now you can join the data in the point layer to the data in the line layer. 
+Right-click on the segments layer and select properties. From the properties
+dialog, select Joins and click the green plus sign to add a join. Select
+the layer you want to join data from and the names of the column you want to 
+join by for both layers.
+
+```{r, echo=FALSE, message=FALSE}
+here("week3",
+     "examples",
+     "gifs",
+     "qgis-join.gif") |>
+  knitr::include_graphics()
+```
+
+## ArcGIS
+
+ArcGIS doesn't do positional joins - you need a common column to do the join.
+Your segments layer that you created by splitting the tracks at the points
+already has a variable called ORIG_SEQ. In my example, this variable has the 
+segments in sequence by time.
+
+I need to create a variable for the waypoints that does the same. I'll create
+a new field and use the field calculator to fill that field with sequential
+numbers, using the following code in a code block to define a function
+called `sequence()`:
+
+```{r, eval=FALSE}
+start = 0
+
+def sequence():
+    global start
+    start += 1
+    return start
+```
+
+```{r, echo=FALSE, message=FALSE}
+here("week3",
+     "examples",
+     "gifs",
+     "arcgis-add-order-field.gif") |>
+  knitr::include_graphics()
+```
+
+Now I can join by points layer to the segments layer based on those two variables
+defining the row sequence.
+
+```{r, echo=FALSE, message=FALSE}
+here("week3",
+     "examples",
+     "gifs",
+     "arcgis-join.gif") |>
+  knitr::include_graphics()
+```

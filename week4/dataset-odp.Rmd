@@ -1,6 +1,6 @@
 ---
 title: "Cape Town Open Data Portal"
-subtitle: "Dataset of the Week (Week 3)"
+subtitle: "Dataset of the Week (Week 4)"
 output: 
   rmdformats::readthedown:
     toc_depth: 3

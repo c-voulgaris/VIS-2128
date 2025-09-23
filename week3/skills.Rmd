@@ -548,7 +548,16 @@ here("week3",
 
 ## ArcGIS
 
+In ArcGIS, create a new variable and fill in its values using the Calculate 
+Geometry tool.
 
+```{r, echo=FALSE, message=FALSE}
+here("week3",
+     "examples",
+     "gifs",
+     "arcgis-calc-length.gif") |>
+  knitr::include_graphics()
+```
 
 # Calculate a cumulative sum
 

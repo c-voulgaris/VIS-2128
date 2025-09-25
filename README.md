@@ -65,7 +65,9 @@
 * Merging layers and features
 
 
+**Examples of complete assignments:**
 
+* [Singapore Cycling Network](https://c-voulgaris.github.io/VIS-2128/week4/example/singapore-cycling.pdf)
 
 ## Historic Maps
 

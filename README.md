@@ -82,15 +82,24 @@
 * Georeferencing an image
 * Manually creating a new data layer
 
+**Examples of complete assignments:**
+
+* [Expansion of Denver](https://c-voulgaris.github.io/VIS-2128/week5/Examples/denver.pdf)
+
 ## Networks
 
 **Dataset of the week:** [OpenStreetMap (Philippines)](https://c-voulgaris.github.io/VIS-2128/week6/dataset-osm.html)
 
 [Skills tutorials](https://c-voulgaris.github.io/VIS-2128/week6/skills.html)
 
+NOTE: Since the most recent version of the skills tutorial, the r5r package
+has introduced the isochrone function: https://ipeagit.github.io/r5r/articles/isochrones.html
+
 * Getting OpenStreetMap data
 * Loading a routeable street network
 * Generating a walkshed
 
+**Examples of complete assignments:**
 
+* [Schools and restaurants in Mlada Boleslav](https://c-voulgaris.github.io/VIS-2128/week6/Examples/Mladá-Boleslav.pdf)
 

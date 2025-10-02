@@ -1,6 +1,6 @@
 ---
 title: "Skills: Network Distances with OpenStreetMap data"
-subtitle: "Week 4"
+subtitle: "Week 6"
 output: 
   rmdformats::readthedown:
     toc_depth: 3
@@ -16,7 +16,7 @@ using network data from OpenStreetMap.
 
 The R examples presented here use the following packages:
 
-```{r, message=FALSE}
+```{r, message=FALSE, warning=FALSE}
 library(sf)
 library(here)
 library(tidyverse)
@@ -70,10 +70,10 @@ will include all the OpenStreetMap data within this rectangle. If you are satisf
 with the bounding box, click the "Extract" button to start creating your data extract.
 
 ```{r, echo=FALSE, message=FALSE, out.width = '100%'}
-here("week4",
-     "examples",
+here("week6",
+     "Examples",
      "gifs",
-     "bbbike.gif") |>
+     "bbike.gif") |>
   knitr::include_graphics()
 ```
 
@@ -85,8 +85,8 @@ You will need to create a free OpenStreetMap account the first time
 you use this service.
 
 ```{r, echo=FALSE, message=FALSE, out.width = '100%'}
-here("week4",
-     "examples",
+here("week6",
+     "Examples",
      "gifs",
      "osm-account.gif") |>
   knitr::include_graphics()
@@ -98,8 +98,8 @@ log into your account and click a button to allow the
 export tool to access your OSM account.
 
 ```{r, echo=FALSE, message=FALSE, out.width = '100%'}
-here("week4",
-     "examples",
+here("week6",
+     "Examples",
      "gifs",
      "hot-login.gif") |>
   knitr::include_graphics()
@@ -109,8 +109,8 @@ You can use the search bar to define the area for your data extract,
 or you can use one of the tools on the map pane to define the area
 
 ```{r, echo=FALSE, message=FALSE, out.width = '100%'}
-here("week4",
-     "examples",
+here("week6",
+     "Examples",
      "gifs",
      "hot-area.gif") |>
   knitr::include_graphics()
@@ -121,22 +121,22 @@ is for your own reference (and for anyone else who might want
 to use the extract you're making, if you publish it).
 
 ```{r, echo=FALSE, message=FALSE, out.width = '100%'}
-here("week4",
-     "examples",
+here("week6",
+     "Examples",
      "gifs",
      "hot-describe.gif") |>
   knitr::include_graphics()
 ```
 
 On the next tab, you can specify a data format. You can select 
-multiple formats. If you want to create a routable network 
+multiple formats. If you want to create a routeable network 
 in R, *and* also have a shapefile or geojson file to work
 with, you might choose to create a *.pbf file and another 
 format.
 
 ```{r, echo=FALSE, message=FALSE, out.width = '100%'}
-here("week4",
-     "examples",
+here("week6",
+     "Examples",
      "gifs",
      "hot-formats.gif") |>
   knitr::include_graphics()
@@ -151,8 +151,8 @@ and click the "Export" button. You'll receive an email (to the address
 associated with your OSM account) when the data are ready to download.
 
 ```{r, echo=FALSE, message=FALSE, out.width = '100%'}
-here("week4",
-     "examples",
+here("week6",
+     "Examples",
      "gifs",
      "hot-filter-export.gif") |>
   knitr::include_graphics()
@@ -179,9 +179,9 @@ The coordinate reference system is not defined, but the coordinates look
 like latitude/longitude coordinates to me, so I'm assuming its WGS 84.
 
 ```{r, results='hide', message=FALSE}
-poa_boundary <- here("week4",
-                 "examples",
-                 "bra_admbnda_adm2_ibge_2020") |>
+poa_boundary <- here("week6",
+                 "Examples",
+                 "bra_admbnda_adm2_ibge_2020.shp") |>
   st_read() |>
   filter(ADM2_PT == "Porto Alegre") |>
   st_set_crs("WGS84")
@@ -233,13 +233,24 @@ get only the portions of roads that fall within the municipal boundary.
 Note that `st_intersection` is editing the geospatial data that I've loaded 
 in R, but isn't editing the *.pbf file I've saved to my `download_directory`.
 
-```{r, results='hide'}
+```{r, eval=FALSE}
 
 poa_osm_lines <- oe_get("Porto Alegre",
                          layer = "lines",
                          boundary = poa_boundary,
-                         download_directory = here("week4",
-                                                   "examples")) |>
+                         download_directory = here("week6",
+                                                   "Examples",
+                                                   "poa-network")) |>
+  st_intersection(poa_boundary)
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, results='hide'}
+
+poa_osm_lines <- here("week6",
+                      "Examples",
+                      "poa-network",
+                      "geofabrik_sul-latest.gpkg") |>
+  st_read() |>
   st_intersection(poa_boundary)
 ```
 
@@ -272,8 +283,8 @@ You can access this tool from the Vector menu. If you don't see it there,
 you may need to enable or install the plugin.
 
 ```{r, echo=FALSE, message=FALSE, out.width = '100%'}
-here("week4",
-     "examples",
+here("week6",
+     "Examples",
      "gifs",
      "add-quick-osm.gif") |>
   knitr::include_graphics()
@@ -284,8 +295,8 @@ place you want to get data from. Click the "Run Query" button and the layers wil
 be added to your map.
 
 ```{r, echo=FALSE, message=FALSE, out.width = '100%'}
-here("week4",
-     "examples",
+here("week6",
+     "Examples",
      "gifs",
      "quick-osm.gif") |>
   knitr::include_graphics()
@@ -301,10 +312,10 @@ Download the tool by navigating to its repository and downloading the entire thi
 as a zip file.
 
 ```{r, echo=FALSE, message=FALSE, out.width = '100%'}
-here("week4",
-     "examples",
+here("week6",
+     "Examples",
      "gifs",
-     "download-osoquery.gif") |>
+     "download-osmquery.gif") |>
   knitr::include_graphics()
 ```
 
@@ -315,8 +326,8 @@ From ArcGIS Pro, open the catalog pane. Right click on "Toolboxes", and select
 "OSMQuery.pyt".
 
 ```{r, echo=FALSE, message=FALSE, out.width = '100%'}
-here("week4",
-     "examples",
+here("week6",
+     "Examples",
      "gifs",
      "add-osmquery.gif") |>
   knitr::include_graphics()
@@ -332,8 +343,8 @@ out of the demonstration below) and then it will add layers for any points, line
 polygons that match the parameters you've specified.
 
 ```{r, echo=FALSE, message=FALSE, out.width = '100%'}
-here("week4",
-     "examples",
+here("week6",
+     "Examples",
      "gifs",
      "run-osmquery.gif") |>
   knitr::include_graphics()
@@ -357,9 +368,9 @@ including one called
 network.dat, which the `r5r` package will use to calculate network 
 distances. 
 
-```{r, message=FALSE, warning=FALSE}
-my_core <- here("week4",
-                "examples",
+```{r, message=FALSE, warning=FALSE, results='hide'}
+my_core <- here("week6",
+                "Examples",
                 "poa-network") |>
   setup_r5()
 ```
@@ -375,8 +386,8 @@ Install the "ORS Tools" plugin from the QGIS plugin manager. Once it's installed
 you'll find it under the "Web" menu in QGIS.
 
 ```{r, echo=FALSE, message=FALSE, out.width = '100%'}
-here("week4",
-     "examples",
+here("week6",
+     "Examples",
      "gifs",
      "web-menu.png") |>
   knitr::include_graphics()
@@ -395,8 +406,8 @@ In QGIS, select "Provider Settings" from the ORS Tools menu and paste your API
 token into the API Key text box.
 
 ```{r, echo=FALSE, message=FALSE, out.width = '100%'}
-here("week4",
-     "examples",
+here("week6",
+     "Examples",
      "gifs",
      "ors-api-key.gif") |>
   knitr::include_graphics()
@@ -416,12 +427,89 @@ within a particular length of time.
 
 ## R
 
-The `r5r` package doesn't generate isochrones directly, but you can create them
-by calculating the travel time between a set of points defining locations of interest
-and a each cell in a grid that covers your entire study area. Then you can combine
-cells that are reachable within your defined threshold.
+The `isochrone` function in the `r5r` package can generate isochrones for you.
+You are welcome to try it. It's somewhat new and I've found it to be a little 
+fussy. The approach below is an alternative that I would have recommended
+before the `isochrone` function was added to the `r5r` package.
 
-### Generate a grid
+You can find more about the `isochrone` function here: https://ipeagit.github.io/r5r/articles/isochrones.html
+
+The `r5r` package requires all input layers to have a column 
+called `id` to uniquely identify each feature. So I'll add that
+to my layer of school points.
+
+```{r}
+poa_schools <- poa_schools |>
+  mutate(id = seq(1, nrow(poa_schools), by=1))
+```
+
+
+### From the isochrone function
+
+The isochrone function works best (most reliably) when you set 
+`polygon_output = FALSE`
+
+```{r, results='hide', message=FALSE, warning=FALSE}
+
+isochrone_lines <- isochrone(my_core,
+                             origins = poa_schools,
+                             mode = "walk",
+                             cutoffs = 20,
+                             polygon_output = FALSE)
+
+```
+This will generate the parts of the network that are reachable within your 
+cutoff time.
+
+```{r}
+ggplot() +
+  geom_sf(data = poa_boundary) +
+  geom_sf(data = poa_roads,
+          color = "gray") +
+  geom_sf(data = isochrone_lines,
+          color = "darkred") +
+    geom_sf(data = poa_schools,
+          color = "steelblue") +
+  theme_void()
+```
+
+To make this a polygon layer, you might just create a buffer around those 
+lines. We might say that any location within 100 meters of streets that
+are within walking distance is also within walking distance.
+
+```{r, results='hide', message=FALSE, warning=FALSE}
+proj_crs <- suggest_top_crs(poa_boundary)
+
+isochrone_line_buffer <- st_transform(isochrone_lines, proj_crs) |>
+  st_buffer(dist = 100) |>
+  st_union()
+
+```
+
+And now we can see the area within a 20-minute walk of any school.
+
+```{r}
+
+ggplot() +
+  geom_sf(data = poa_boundary) +
+  geom_sf(data = poa_roads,
+          color = "gray") +
+  geom_sf(data = isochrone_line_buffer,
+          color = NA,
+          fill = "darkred") +
+    geom_sf(data = poa_schools,
+          color = "steelblue") +
+  theme_void()
+
+```
+
+
+### From a travel time matrix
+
+Another approach is to generate isochrones by calculatig travel times
+to grid cells.
+
+#### Generate a grid
 
 You can use the `st_make_grid()` function to create a grid that covers
 the extent of your study area. 
@@ -461,16 +549,7 @@ ggplot() +
   theme_void()
 ```
 
-### Calculate a travel time matrix
-
-The `r5r` package requires all input layers to have a column 
-called `id` to uniquely identify each feature. So I'll add that
-to my layer of school points.
-
-```{r}
-poa_schools <- poa_schools |>
-  mutate(id = seq(1, nrow(poa_schools), by=1))
-```
+#### Calculate a travel time matrix
 
 I want to calculate the travel time from each school to the
 centroid of each cell in my grid, so I'll create a set of 
@@ -501,7 +580,7 @@ The result will be a table with three columns:
 * `travel_time_p50` the estimated travel time from the origin 
 to the destination.
 
-### Filter based on threshold travel times
+#### Filter based on threshold travel times
 
 We can filter out the rows with travel times greater than the thresholds
 we want for our isochrones (let's say 20 minutes).
@@ -529,7 +608,7 @@ ggplot() +
   theme_void()
 ```
 
-### Combine grid cells into isochrones
+#### Combine grid cells into isochrones
 
 Finally, we can combine those grid cells into a single 
 isochrone.
@@ -559,8 +638,8 @@ which you can ignore.
 This will generate a separate polygon for each point feature.
 
 ```{r, echo=FALSE, message=FALSE, out.width = '100%'}
-here("week4",
-     "examples",
+here("week6",
+     "Examples",
      "gifs",
      "generate-isos-qgis.gif") |>
   knitr::include_graphics()
@@ -570,10 +649,10 @@ You can use the Dissolve geoprocessing tool to dissolve these into a
 single multipolygon.
 
 ```{r, echo=FALSE, message=FALSE, out.width = '100%'}
-here("week4",
-     "examples",
+here("week6",
+     "Examples",
      "gifs",
-     "dissolve-isos.gif") |>
+     "dissolve-isos-qgis.gif") |>
   knitr::include_graphics()
 ```
 
@@ -593,8 +672,8 @@ area features in your contents pane, but with nothing displayed on the
 map).
 
 ```{r, echo=FALSE, message=FALSE, out.width = '100%'}
-here("week4",
-     "examples",
+here("week6",
+     "Examples",
      "gifs",
      "service-area-1.gif") |>
   knitr::include_graphics()
@@ -606,8 +685,8 @@ service area layer. Go to the "Service Area Layer" ribbon and click the
 the "Input Locations" dropdown menu and click "Apply" or "Okay."
 
 ```{r, echo=FALSE, message=FALSE, out.width = '100%'}
-here("week4",
-     "examples",
+here("week6",
+     "Examples",
      "gifs",
      "import-facilities.gif") |>
   knitr::include_graphics()
@@ -624,8 +703,8 @@ click "Run".
 You will see a set of polygons added to your Service Area layer.
 
 ```{r, echo=FALSE, message=FALSE, out.width = '100%'}
-here("week4",
-     "examples",
+here("week6",
+     "Examples",
      "gifs",
      "generate-isos.gif") |>
   knitr::include_graphics()

@@ -92,9 +92,6 @@
 
 [Skills tutorials](https://c-voulgaris.github.io/VIS-2128/week6/skills.html)
 
-NOTE: Since the most recent version of the skills tutorial, the r5r package
-has introduced the isochrone function: https://ipeagit.github.io/r5r/articles/isochrones.html
-
 * Getting OpenStreetMap data
 * Loading a routeable street network
 * Generating a walkshed

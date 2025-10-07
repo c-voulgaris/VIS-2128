@@ -480,7 +480,39 @@ how far they are from a hospital.
 
 ## QGIS
 
-Coming...
+Calculate a travel time matrix by opening the ORS tool from the web menu and 
+clicking the Matrix button. Select the travel mode, the sets of origin and
+destination points, and names of the fields you'll use to join the data later, 
+then click "Run."
+
+A new table will appear in your table of contents that shows the travel time from
+each of your origin points to each of your destination points.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week6",
+     "Examples",
+     "gifs",
+     "qgis-ttm.gif") |>
+  knitr::include_graphics()
+```
+
+You can get the travel time to the closest point by aggregating the travel
+time matrix by origin point.
+
+First, install the "Group Stats" plugin.
+
+Then open the Group Stats plugin from the aggreagate mene. Drag your origin IDs 
+(FROM_ID) to the "Rows" area and drag the trip duration and the "min" function 
+to the values area. You can save the resulting layer as a csv file, which you can 
+open in QGIS from Layer -> Add Layer -> Add Delimited Text Layer.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week6",
+     "Examples",
+     "gifs",
+     "qgis-aggregate.gif") |>
+  knitr::include_graphics()
+```
 
 ## ArcGIS Pro
 

@@ -420,6 +420,109 @@ but ArcGIS Online has its own global, routeable street network that ArcGIS Pro
 will use by default. This is generally going to be fine for most purposes (and may
 be better in some places than OpenStreetMap data).
 
+# Calculating travel time matrix
+
+A travel time matrix gives the travel time between every point in a set
+of origins and each of the points in a set of destinations.
+
+## R
+
+In R, you can use the `travel_time_matrix` function.
+
+The `r5r` package requires all input layers to have a column 
+called `id` to uniquely identify each feature. So I'll add that
+to my layer of school and hospital points before running the function.
+
+```{r, warning=FALSE}
+
+poa_schools <- poa_schools |>
+  mutate(id = seq(1, nrow(poa_schools), by=1))
+
+poa_hospitals <- poa_hospitals |>
+  mutate(id = seq(1, nrow(poa_hospitals), by=1))
+
+ttm_schools_to_hospitals <- travel_time_matrix(r5r_core = my_core,
+                                               origins = poa_schools,
+                                               destinations = poa_hospitals,
+                                               mode = "WALK")
+
+```
+
+Let's look at the first few rows of the resulting data frame.
+
+```{r}
+
+ttm_schools_to_hospitals[1:10,] |>
+  kable()
+
+```
+
+You can see that the walking time from school 1 to hospital 1 is 64 minutes.
+This data frame will have a row for each possible pair of origins and 
+destinations for a which a walking time could be calculate.
+
+We might be interested in the walking to to the closest hospital. We can 
+calculate the minimum walking time from each school as follows.
+
+```{r}
+
+walk_to_closest_hosp <- ttm_schools_to_hospitals |>
+  group_by(from_id) |>
+  summarize(walk_to_closest_hosp = min(travel_time_p50))
+
+walk_to_closest_hosp |>
+  kable()
+
+```
+
+I can join that table to my school points if I want to symbolize schools by 
+how far they are from a hospital.
+
+## QGIS
+
+Coming...
+
+## ArcGIS Pro
+
+Click the Network Analysis button on the Analysis ribbon and
+select "Origin_destination Cost Matrix". 
+
+This will create an empty cost matrix layer (you'll see the cost matrix 
+features in your contents pane, but with nothing displayed on the
+map).
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week6",
+     "Examples",
+     "gifs",
+     "arcgis-setup-od-mat-layer.gif") |>
+  knitr::include_graphics()
+```
+
+
+Select the OD COst Matrix Layer you've created and go to the OD Cost Matrix Layer
+Tab that appears. Set the mode to "Walking Time". Set the Output geometry to "No
+Lines". Import one point layer as your origins and another as your destinations.
+When you import the (especiall) origins and destinations, be sure and set the field name to a field you'll be able to use to join your data to the points layer.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week6",
+     "Examples",
+     "gifs",
+     "arcgis-od-run.gif") |>
+  knitr::include_graphics()
+```
+
+Now you can join the walk times to the origin points layer.
+
+```{r, echo=FALSE, message=FALSE, out.width = '100%'}
+here("week6",
+     "Examples",
+     "gifs",
+     "arcgis-join.gif") |>
+  knitr::include_graphics()
+```
+
 # Generating isochrones
 
 An isochrone is a polygon with edges defined by the area you can reach 
@@ -434,9 +537,6 @@ before the `isochrone` function was added to the `r5r` package.
 
 You can find more about the `isochrone` function here: https://ipeagit.github.io/r5r/articles/isochrones.html
 
-The `r5r` package requires all input layers to have a column 
-called `id` to uniquely identify each feature. So I'll add that
-to my layer of school points.
 
 ```{r}
 poa_schools <- poa_schools |>
